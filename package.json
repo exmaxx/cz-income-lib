@@ -4,5 +4,8 @@
   "description": "Calculates taxes for self-employed and employees",
   "author": "Marek Ulicny",
   "license": "CC BY-SA 4.0",
-  "main": "index.js"
+  "main": "index.js",
+  "devDependencies": {
+    "prettier": "^3.3.2"
+  }
 }
