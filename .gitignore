@@ -1,0 +1,9 @@
+# IDE - Visual Studio Code, WebStorm, etc.
+.idea/
+.vscode/
+
+# Dependency directories
+node_modules/
+
+# Logs
+*.log

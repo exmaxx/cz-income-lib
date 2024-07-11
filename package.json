@@ -1,0 +1,8 @@
+{
+  "name": "@exmaxx/income-calculator",
+  "version": "0.0.1",
+  "description": "Calculates taxes for self-employed and employees",
+  "author": "Marek Ulicny",
+  "license": "CC BY-SA 4.0",
+  "main": "index.js"
+}
