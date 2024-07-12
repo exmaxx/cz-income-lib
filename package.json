@@ -3,9 +3,16 @@
   "version": "0.0.1",
   "description": "Calculates taxes for self-employed and employees",
   "author": "Marek Ulicny",
-  "license": "CC BY-SA 4.0",
-  "main": "index.js",
+  "license": "CC-BY-SA-4.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest"
+  },
   "devDependencies": {
-    "prettier": "^3.3.2"
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.2",
+    "ts-jest": "^29.2.2",
+    "typescript": "^5.5.3"
   }
 }
