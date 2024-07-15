@@ -1,5 +1,5 @@
 import calculate from './freelancer'
-import {Expenses, Rates} from "./freelancer.types";
+import { Expenses, Rates } from './freelancer.types'
 
 describe('freelancer', () => {
   // For 2023
@@ -40,8 +40,19 @@ describe('freelancer', () => {
       })
     })
 
-    xit('accepts expenses as real amount', () => {
-      // TBD
+    it('accepts expenses as real amount', () => {
+      const expenses: Expenses = {
+        amount: 400000,
+      }
+
+      expect(calculate(income, expenses, rates)).toEqual({
+        health: 40500,
+        healthAssessmentBase: 300000,
+        incomeTax: 59160,
+        incomeTaxBase: 600000,
+        social: 87600,
+        socialAssessmentBase: 300000,
+      })
     })
   })
 })

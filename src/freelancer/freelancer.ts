@@ -1,45 +1,96 @@
-import { Expenses, Rates } from './freelancer.types'
+import {
+  Expenses,
+  HealthInsuranceRates,
+  IncomeRates,
+  Rates,
+  SocialInsuranceRates,
+} from './freelancer.types'
 
 /**
- * Calculates the tax and insurance contributions for a freelancer based on their income, expenses, and applicable rates.
+ * Calculates the income tax base based on the expenses and income rates.
+ * @param expenses
+ * @param income
+ * @param incomeRates
+ */
+function calculateIncomeTaxBase(expenses: Expenses, income: number, incomeRates: IncomeRates) {
+  let profit: number
+
+  if ('rate' in expenses) {
+    profit = income * (1 - expenses.rate)
+  } else {
+    profit = income - expenses.amount
+  }
+
+  return Math.max(profit - incomeRates.nonTaxable, 0)
+}
+
+/**
+ * Calculates the income tax based on the income tax base and the income rates.
+ * @param incomeTaxBase
+ * @param incomeRates
+ */
+function calculateIncomeTax(incomeTaxBase: number, incomeRates: IncomeRates) {
+  return Math.max(incomeTaxBase * incomeRates.rate - incomeRates.credit, 0)
+}
+
+/**
+ * Calculates the social insurance contributions based on the income tax base and the social rates.
+ * @param incomeTaxBase
+ * @param socialRates
+ */
+function calculateSocial(incomeTaxBase: number, socialRates: SocialInsuranceRates) {
+  const socialAssessmentBase = Math.max(
+    incomeTaxBase * socialRates.basePercentage,
+    socialRates.minBase
+  )
+
+  const social = Math.min(Math.ceil(socialAssessmentBase * socialRates.rate), socialRates.maxBase)
+
+  return { socialAssessmentBase, social }
+}
+
+/**
+ * Calculates the health insurance contributions based on the income tax base and the health rates.
+ * @param incomeTaxBase
+ * @param healthRates
+ */
+function calculateHealth(incomeTaxBase: number, healthRates: HealthInsuranceRates) {
+  const healthAssessmentBase = Math.max(
+    incomeTaxBase * healthRates.basePercentage,
+    healthRates.minBase
+  )
+
+  const health = Math.ceil(healthAssessmentBase * healthRates.rate)
+
+  return { healthAssessmentBase, health }
+}
+
+/**
+ * Calculates the tax and insurance contributions for a freelancer based on their income, expenses,
+ * and applicable rates.
  *
- * @param income - The total income of the freelancer.
- * @param expenses - The expenses incurred, represented either as a fixed amount or a percentage of the income.
- * @param rates - The applicable rates for income tax, social insurance, and health insurance.
- * @returns An object containing detailed calculations of taxes and insurance contributions.
+ * @param income - The income of the freelancer
+ * @param expenses - The expenses, represented either as a fixed amount or a flat-rate percentage
+ *  of the income
+ * @param rates - The rates for income tax, social insurance, and health insurance
+ * @returns An object containing detailed calculations of taxes and insurance contributions
  */
 function calculate(income: number, expenses: Expenses, rates: Rates) {
   const { incomeRates, socialRates, healthRates } = rates
 
-  if ('rate' in expenses) {
-    const profit = income * (1 - expenses.rate)
-    const incomeTaxBase = Math.max(profit - incomeRates.nonTaxable, 0)
-    const incomeTax = Math.max(incomeTaxBase * incomeRates.rate - incomeRates.credit, 0)
+  const incomeTaxBase = calculateIncomeTaxBase(expenses, income, incomeRates)
+  const incomeTax = calculateIncomeTax(incomeTaxBase, incomeRates)
+  const { socialAssessmentBase, social } = calculateSocial(incomeTaxBase, socialRates)
+  const { healthAssessmentBase, health } = calculateHealth(incomeTaxBase, healthRates)
 
-    const socialAssessmentBase = Math.max(
-      incomeTaxBase * socialRates.basePercentage,
-      socialRates.minBase
-    )
-
-    const social = Math.min(Math.ceil(socialAssessmentBase * socialRates.rate), socialRates.maxBase)
-
-    const healthAssessmentBase = Math.max(
-      incomeTaxBase * healthRates.basePercentage,
-      healthRates.minBase
-    )
-
-    const health = Math.ceil(healthAssessmentBase * healthRates.rate)
-
-    return {
-      health,
-      healthAssessmentBase,
-      incomeTax,
-      incomeTaxBase,
-      social,
-      socialAssessmentBase,
-    }
-  } else {
-    // TBD
+  return {
+    health,
+    healthAssessmentBase,
+    incomeTax,
+    incomeTaxBase,
+    social,
+    socialAssessmentBase,
   }
 }
+
 export default calculate

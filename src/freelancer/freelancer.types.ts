@@ -1,4 +1,4 @@
-interface IncomeRates {
+export interface IncomeRates {
   rate: number
   /** value subtracted from the resulting income tax */
   credit: number
@@ -6,7 +6,7 @@ interface IncomeRates {
   nonTaxable: number
 }
 
-interface SocialInsuranceRates {
+export interface SocialInsuranceRates {
   /** assessment base rate for social and health insurance (calculated from income tax base) */
   basePercentage: number
   /** maximum assessment base, 48-times average salary */
@@ -17,7 +17,7 @@ interface SocialInsuranceRates {
   rate: number
 }
 
-interface HealthInsuranceRates {
+export interface HealthInsuranceRates {
   /** assessment base rate for social and health insurance (calculated from income tax base) */
   basePercentage: number
   /** minimum assessment base */
