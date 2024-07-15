@@ -2,7 +2,7 @@ module.exports = {
   trailingComma: 'es5',
   semi: false,
   singleQuote: true,
-  maxLineLength: 100,
+  printWidth: 100,
   overrides: [
     {
       files: '*.html',
