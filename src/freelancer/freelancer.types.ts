@@ -1,13 +1,13 @@
 export interface IncomeRates {
   rate: number
-  /** value subtracted from the resulting income tax */
+  /** "sleva na dani", value subtracted from the income tax subtotal */
   credit: number
-  /** value subtracted from the income tax base */
+  /** "odecitatelna polozka", value subtracted from the income tax base, i.e. amount that is not taxed */
   nonTaxable: number
 }
 
 export interface SocialInsuranceRates {
-  /** assessment base rate for social and health insurance (calculated from income tax base) */
+  /** "vymerovaci zaklad - procento ze zakladu dane", assessment base rate for social and health insurance (calculated from income tax base) */
   basePercentage: number
   /** maximum assessment base, 48-times average salary */
   maxBase: number
@@ -18,7 +18,7 @@ export interface SocialInsuranceRates {
 }
 
 export interface HealthInsuranceRates {
-  /** assessment base rate for social and health insurance (calculated from income tax base) */
+  /** "vymerovaci zaklad - procento ze zakladu dane", assessment base rate for social and health insurance (calculated from income tax base) */
   basePercentage: number
   /** minimum assessment base */
   minBase: number

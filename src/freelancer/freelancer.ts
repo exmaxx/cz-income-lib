@@ -7,10 +7,14 @@ import {
 } from './freelancer.types'
 
 /**
+ * Rounds a number down to the nearest multiple of a given precision.
+ */
+function roundDown(value: number, precision: number) {
+  return Math.floor(value / precision) * precision
+}
+
+/**
  * Calculates the income tax base based on the expenses and income rates.
- * @param expenses
- * @param income
- * @param incomeRates
  */
 function calculateIncomeTaxBase(expenses: Expenses, income: number, incomeRates: IncomeRates) {
   let profit: number
@@ -21,22 +25,18 @@ function calculateIncomeTaxBase(expenses: Expenses, income: number, incomeRates:
     profit = income - expenses.amount
   }
 
-  return Math.max(profit - incomeRates.nonTaxable, 0)
+  return Math.max(roundDown(profit - incomeRates.nonTaxable, 100), 0)
 }
 
 /**
  * Calculates the income tax based on the income tax base and the income rates.
- * @param incomeTaxBase
- * @param incomeRates
  */
 function calculateIncomeTax(incomeTaxBase: number, incomeRates: IncomeRates) {
-  return Math.max(incomeTaxBase * incomeRates.rate - incomeRates.credit, 0)
+  return Math.max(Math.ceil(incomeTaxBase * incomeRates.rate - incomeRates.credit), 0)
 }
 
 /**
  * Calculates the social insurance contributions based on the income tax base and the social rates.
- * @param incomeTaxBase
- * @param socialRates
  */
 function calculateSocial(incomeTaxBase: number, socialRates: SocialInsuranceRates) {
   const socialAssessmentBase = Math.max(
@@ -51,8 +51,6 @@ function calculateSocial(incomeTaxBase: number, socialRates: SocialInsuranceRate
 
 /**
  * Calculates the health insurance contributions based on the income tax base and the health rates.
- * @param incomeTaxBase
- * @param healthRates
  */
 function calculateHealth(incomeTaxBase: number, healthRates: HealthInsuranceRates) {
   const healthAssessmentBase = Math.max(
@@ -69,16 +67,16 @@ function calculateHealth(incomeTaxBase: number, healthRates: HealthInsuranceRate
  * Calculates the tax and insurance contributions for a freelancer based on their income, expenses,
  * and applicable rates.
  *
- * @param income - The income of the freelancer
+ * @param grossIncome - The income of the freelancer
  * @param expenses - The expenses, represented either as a fixed amount or a flat-rate percentage
  *  of the income
  * @param rates - The rates for income tax, social insurance, and health insurance
  * @returns An object containing detailed calculations of taxes and insurance contributions
  */
-function calculate(income: number, expenses: Expenses, rates: Rates) {
+function calculate(grossIncome: number, expenses: Expenses, rates: Rates) {
   const { incomeRates, socialRates, healthRates } = rates
 
-  const incomeTaxBase = calculateIncomeTaxBase(expenses, income, incomeRates)
+  const incomeTaxBase = calculateIncomeTaxBase(expenses, grossIncome, incomeRates)
   const incomeTax = calculateIncomeTax(incomeTaxBase, incomeRates)
   const { socialAssessmentBase, social } = calculateSocial(incomeTaxBase, socialRates)
   const { healthAssessmentBase, health } = calculateHealth(incomeTaxBase, healthRates)
