@@ -1,4 +1,4 @@
-import calculate from './freelancer'
+import calculateNetIncome from './netIncome'
 import { Expenses, Rates } from './freelancer.types'
 
 describe('freelancer', () => {
@@ -30,7 +30,7 @@ describe('freelancer', () => {
         rate: 0.6, // 60%
       }
 
-      expect(calculate(income, expenses, rates)).toEqual({
+      expect(calculateNetIncome(income, expenses, rates)).toEqual({
         health: 32663,
         healthAssessmentBase: 241944,
         incomeTax: 29160,
@@ -45,7 +45,7 @@ describe('freelancer', () => {
         amount: 400000,
       }
 
-      expect(calculate(income, expenses, rates)).toEqual({
+      expect(calculateNetIncome(income, expenses, rates)).toEqual({
         health: 40500,
         healthAssessmentBase: 300000,
         incomeTax: 59160,

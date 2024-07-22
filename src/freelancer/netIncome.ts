@@ -73,7 +73,7 @@ function calculateHealth(incomeTaxBase: number, healthRates: HealthInsuranceRate
  * @param rates - The rates for income tax, social insurance, and health insurance
  * @returns An object containing detailed calculations of taxes and insurance contributions
  */
-function calculate(grossIncome: number, expenses: Expenses, rates: Rates) {
+function calculateNetIncome(grossIncome: number, expenses: Expenses, rates: Rates) {
   const { incomeRates, socialRates, healthRates } = rates
 
   const incomeTaxBase = calculateIncomeTaxBase(expenses, grossIncome, incomeRates)
@@ -91,4 +91,4 @@ function calculate(grossIncome: number, expenses: Expenses, rates: Rates) {
   }
 }
 
-export default calculate
+export default calculateNetIncome
