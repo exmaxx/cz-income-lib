@@ -1,3 +1,6 @@
+/**
+ * Income tax rates.
+ */
 export interface IncomeRates {
   rate: number
   /** "sleva na dani", value subtracted from the income tax subtotal */
@@ -6,6 +9,9 @@ export interface IncomeRates {
   nonTaxable: number
 }
 
+/**
+ * Social insurance rates.
+ */
 export interface SocialInsuranceRates {
   /** "vymerovaci zaklad - procento ze zakladu dane", assessment base rate for social and health insurance (calculated from income tax base) */
   basePercentage: number
@@ -17,6 +23,9 @@ export interface SocialInsuranceRates {
   rate: number
 }
 
+/**
+ * Health insurance rates.
+ */
 export interface HealthInsuranceRates {
   /** "vymerovaci zaklad - procento ze zakladu dane", assessment base rate for social and health insurance (calculated from income tax base) */
   basePercentage: number
@@ -26,10 +35,16 @@ export interface HealthInsuranceRates {
   rate: number
 }
 
+/**
+ * Rates for income tax, social insurance, and health insurance.
+ */
 export type Rates = {
   incomeRates: IncomeRates
   socialRates: SocialInsuranceRates
   healthRates: HealthInsuranceRates
 }
 
+/**
+ * Expenses can be either a flat-rate percentage or a fixed amount.
+ */
 export type Expenses = { amount: number; rate?: never } | { amount?: never; rate: number }
