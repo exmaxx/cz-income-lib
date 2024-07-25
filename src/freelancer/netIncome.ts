@@ -81,11 +81,19 @@ function calculateNetIncome(grossIncome: number, expenses: Expenses, rates: Rate
   const { socialAssessmentBase, social } = calculateSocial(incomeTaxBase, socialRates)
   const { healthAssessmentBase, health } = calculateHealth(incomeTaxBase, healthRates)
 
+  let netIncome = grossIncome - incomeTax - social - health
+
+  if ('amount' in expenses) {
+    netIncome -= expenses.amount
+    netIncome = Math.max(netIncome, 0)
+  }
+
   return {
     health,
     healthAssessmentBase,
     incomeTax,
     incomeTaxBase,
+    netIncome,
     social,
     socialAssessmentBase,
   }

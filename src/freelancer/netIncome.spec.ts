@@ -1,7 +1,7 @@
 import calculateNetIncome from './netIncome'
 import { Expenses, Rates } from './freelancer.types'
 
-describe('freelancer', () => {
+describe('calculateNetIncome function', () => {
   // For 2023
   const rates: Rates = {
     incomeRates: {
@@ -35,6 +35,7 @@ describe('freelancer', () => {
         healthAssessmentBase: 241944,
         incomeTax: 29160,
         incomeTaxBase: 400000,
+        netIncome: 879777,
         social: 58400,
         socialAssessmentBase: 200000,
       })
@@ -50,6 +51,7 @@ describe('freelancer', () => {
         healthAssessmentBase: 300000,
         incomeTax: 59160,
         incomeTaxBase: 600000,
+        netIncome: 412740,
         social: 87600,
         socialAssessmentBase: 300000,
       })
