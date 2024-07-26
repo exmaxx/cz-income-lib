@@ -1,7 +1,7 @@
 import calculateNetIncome from './netIncome'
 import { Expenses, Rates } from './freelancer.types'
 
-describe('calculateNetIncome function', () => {
+describe('calculator of net income and insurance', () => {
   // For 2023
   const rates: Rates = {
     incomeRates: {
@@ -24,8 +24,8 @@ describe('calculateNetIncome function', () => {
 
   const income = 1000000
 
-  describe('calculation of income and insurance', () => {
-    it('accepts expenses as flat-rate', () => {
+  describe('expenses as flat-rate', () => {
+    it('calculates net income and other values', () => {
       const expenses: Expenses = {
         rate: 0.6, // 60%
       }
@@ -40,21 +40,35 @@ describe('calculateNetIncome function', () => {
         socialAssessmentBase: 200000,
       })
     })
+  })
 
-    it('accepts expenses as real amount', () => {
+  describe('expenses as real amount', () => {
+    it('calculates net income and other values', () => {
       const expenses: Expenses = {
-        amount: 400000,
+        amount: 500000,
       }
 
-      expect(calculateNetIncome(income, expenses, rates)).toEqual({
-        health: 40500,
-        healthAssessmentBase: 300000,
-        incomeTax: 59160,
-        incomeTaxBase: 600000,
-        netIncome: 412740,
-        social: 87600,
-        socialAssessmentBase: 300000,
+      const result = calculateNetIncome(income, expenses, rates)
+
+      expect(result).toEqual({
+        health: 33750,
+        healthAssessmentBase: 250000,
+        incomeTax: 44160,
+        incomeTaxBase: 500000,
+        netIncome: 349090,
+        social: 73000,
+        socialAssessmentBase: 250000,
       })
+    })
+
+    it('calculates income tax as zero when negative', () => {
+      const expenses: Expenses = {
+        amount: 800000,
+      }
+
+      const { incomeTax } = calculateNetIncome(income, expenses, rates)
+
+      expect(incomeTax).toEqual(0)
     })
   })
 })
