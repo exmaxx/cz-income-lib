@@ -39,12 +39,14 @@ function calculateIncomeTax(incomeTaxBase: number, incomeRates: IncomeRates) {
  * Calculates the social insurance contributions based on the income tax base and the social rates.
  */
 function calculateSocial(incomeTaxBase: number, socialRates: SocialInsuranceRates) {
-  const socialAssessmentBase = Math.max(
+  let socialAssessmentBase = Math.max(
     incomeTaxBase * socialRates.basePercentage,
     socialRates.minBase
   )
 
-  const social = Math.min(Math.ceil(socialAssessmentBase * socialRates.rate), socialRates.maxBase)
+  socialAssessmentBase = Math.min(socialAssessmentBase, socialRates.maxBase)
+
+  const social = Math.ceil(socialAssessmentBase * socialRates.rate)
 
   return { socialAssessmentBase, social }
 }

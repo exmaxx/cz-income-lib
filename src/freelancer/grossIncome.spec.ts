@@ -2,6 +2,8 @@ import calculateGrossIncome from './grossIncome'
 import { Rates } from './freelancer.types'
 
 describe('calculate gross income', () => {
+  const AVG_SALARY = 40324
+
   // For 2023
   const rates: Rates = {
     incomeRates: {
@@ -16,8 +18,8 @@ describe('calculate gross income', () => {
     },
     socialRates: {
       basePercentage: 0.5, // 50%
-      minBase: 10081 * 12, // 10081 CZK per month
-      maxBase: 1935552, // 48-times average salary
+      minBase: AVG_SALARY * 0.25 * 12, // = 120 972; 25% of average salary per month
+      maxBase: AVG_SALARY * 48, // = 1 935 552; 48-times average salary
       rate: 0.292, // 29.2% = 28% (retirement) + 1.2% (unemployment)
     },
   }
