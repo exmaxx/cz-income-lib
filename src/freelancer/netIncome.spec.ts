@@ -2,6 +2,8 @@ import calculateNetIncome from './netIncome'
 import { Expenses, Rates } from './freelancer.types'
 
 describe('calculator of net income and insurance', () => {
+  const AVG_SALARY = 40324
+
   // For 2023
   const rates: Rates = {
     incomeRates: {
@@ -11,13 +13,13 @@ describe('calculator of net income and insurance', () => {
     },
     healthRates: {
       basePercentage: 0.5, // 50%
-      minBase: 20162 * 12, // 20162 CZK per month
+      minBase: 20162 * 12, // 241944; 20162 CZK per month
       rate: 0.135, // 13.5%
     },
     socialRates: {
       basePercentage: 0.5, // 50%
-      minBase: 10081 * 12, // 10081 CZK per month
-      maxBase: 1935552, // 48-times average salary
+      minBase: AVG_SALARY * 0.25 * 12, // = 120 972; 25% of average salary per month
+      maxBase: AVG_SALARY * 48, // = 1 935 552; 48-times average salary
       rate: 0.292, // 29.2% = 28% (retirement) + 1.2% (unemployment)
     },
   }
@@ -43,7 +45,7 @@ describe('calculator of net income and insurance', () => {
   })
 
   describe('expenses as real amount', () => {
-    it('calculates net income and other values', () => {
+    it('sets income tax to zero if calculated as negative', () => {
       const expenses: Expenses = {
         amount: 500000,
       }
@@ -69,6 +71,37 @@ describe('calculator of net income and insurance', () => {
       const { incomeTax } = calculateNetIncome(income, expenses, rates)
 
       expect(incomeTax).toEqual(0)
+    })
+
+    it('sets social assessment base to minimum if below threshold', () => {
+      const expenses: Expenses = {
+        amount: 900000,
+      }
+
+      const { socialAssessmentBase } = calculateNetIncome(income, expenses, rates)
+
+      expect(socialAssessmentBase).toEqual(rates.socialRates.minBase)
+    })
+
+    // same for social max base
+    it('sets social assessment base to maximum if above threshold', () => {
+      const expenses: Expenses = {
+        amount: 0,
+      }
+
+      const { socialAssessmentBase } = calculateNetIncome(4000000, expenses, rates)
+
+      expect(socialAssessmentBase).toEqual(rates.socialRates.maxBase)
+    })
+
+    it('sets health assessment base to minimum if below threshold', () => {
+      const expenses: Expenses = {
+        amount: 900000,
+      }
+
+      const { healthAssessmentBase } = calculateNetIncome(income, expenses, rates)
+
+      expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
     })
   })
 })
