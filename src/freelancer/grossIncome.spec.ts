@@ -1,63 +1,58 @@
-import calculateGrossIncome from './grossIncome'
-import { Rates } from './freelancer.types'
+import estimateGrossIncome from './grossIncome'
+import { isAlmostEqual } from './utils'
+import { rates } from './freelancer.fixtures'
 
 describe('calculate gross income', () => {
-  const AVG_SALARY = 40324
+  const grossIncome = 1000000
 
-  // For 2023
-  const rates: Rates = {
-    incomeRates: {
-      rate: 0.15, // 15%
-      credit: 30840,
-      nonTaxable: 0,
-    },
-    healthRates: {
-      basePercentage: 0.5, // 50%
-      minBase: 20162 * 12, // 20162 CZK per month
-      rate: 0.135, // 13.5%
-    },
-    socialRates: {
-      basePercentage: 0.5, // 50%
-      minBase: AVG_SALARY * 0.25 * 12, // = 120 972; 25% of average salary per month
-      maxBase: AVG_SALARY * 48, // = 1 935 552; 48-times average salary
-      rate: 0.292, // 29.2% = 28% (retirement) + 1.2% (unemployment)
-    },
-  }
-
-  describe('expenses as flat-rate', () => {
-    const expenses = {
-      rate: 0.6, // 60%
-    }
-
-    it('calculates gross income from net income', () => {
-      // The result should have been 1136355 but there is rounding in the net income calculation
-      // so we are not able to get the exact result.
-      expect(calculateGrossIncome(885440, expenses, rates)).toEqual(1000000)
-
-      // FIXME: This is the correct result when we take into account the min and max bases
-      // expect(calculateGrossIncome(879777, expenses, rates)).toEqual(1000000)
+  describe('expenses as flat-rate percentage', () => {
+    it('estimates gross income from net income', () => {
+      expect(estimateGrossIncome(812740, { percentage: 0.4 }, rates)).toEqual(grossIncome)
+      expect(estimateGrossIncome(1312740, { percentage: 0.6 }, rates)).toEqual(1500000)
     })
 
     it('returns 0 for a net income of 0', () => {
-      expect(calculateGrossIncome(0, expenses, rates)).toEqual(0)
+      expect(estimateGrossIncome(0, { percentage: 0.6 }, rates)).toEqual(0)
     })
 
     it('returns 0 for a negative net income', () => {
-      expect(calculateGrossIncome(-100, expenses, rates)).toEqual(0)
+      expect(estimateGrossIncome(-1000, { percentage: 0.6 }, rates)).toEqual(0)
     })
   })
 
   describe('expenses as real amount', () => {
-    const expenses = {
-      amount: 500000,
-    }
+    it('estimates gross income from net income', () => {
+      expect(estimateGrossIncome(349090, { amount: 500000 }, rates)).toEqual(grossIncome)
+    })
 
-    it('calculates gross income from net income', () => {
-      expect(calculateGrossIncome(349090, expenses, rates)).toEqual(1000000)
+    it('works when minimal base for health insurance is reached', () => {
+      const result = estimateGrossIncome(210000, { amount: 700000 }, rates, {
+        isMinHealthBaseForced: true,
+      })
 
-      // FIXME: This would be the correct result if we take into account the min and max bases and
-      //   making income tax zero when negative
-      // expect(calculateGrossIncome(1000000, expenses, rates)).toEqual(1951744)
+      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+    })
+
+    it('works when minimal base for social insurance is reached', () => {
+      const result = estimateGrossIncome(150000, { amount: 780000 }, rates, {
+        // min. health base must be used because when social threshold is applied in the original net income calculation,
+        // the health base must have already been applied also (health base is higher) - at least it holds for 2023 rates
+        isMinHealthBaseForced: true,
+        isMinSocialBaseForced: true,
+      })
+
+      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+    })
+
+    it('works when zero income tax is reached', () => {
+      const result = estimateGrossIncome(132000, { amount: 800000 }, rates, {
+        // again, when zero tax option is used, the health and social base must be used as well
+        isMinHealthBaseForced: true,
+        isMinSocialBaseForced: true,
+        isIncomeTaxZero: true,
+      })
+
+      expect(isAlmostEqual(result, grossIncome)).toBe(true)
     })
   })
 })

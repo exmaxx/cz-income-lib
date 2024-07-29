@@ -46,5 +46,11 @@ export type Rates = {
 
 /**
  * Expenses can be either a flat-rate percentage or a fixed amount.
+ *
+ * @example
+ * { amount: 1000000 } // fixed amount, meaning 1000000 CZK
+ * { rate: 0.6 } // flat-rate percentage, meaning 60%
  */
-export type Expenses = { amount: number; rate?: never } | { amount?: never; rate: number }
+export type Expenses =
+  | { amount: number; percentage?: never }
+  | { amount?: never; percentage: number }

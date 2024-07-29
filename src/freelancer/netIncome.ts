@@ -19,8 +19,8 @@ function roundDown(value: number, precision: number) {
 function calculateIncomeTaxBase(expenses: Expenses, income: number, incomeRates: IncomeRates) {
   let profit: number
 
-  if ('rate' in expenses) {
-    profit = income * (1 - expenses.rate)
+  if ('percentage' in expenses) {
+    profit = income * (1 - expenses.percentage)
   } else {
     profit = income - expenses.amount
   }

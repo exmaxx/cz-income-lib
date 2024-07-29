@@ -29,7 +29,7 @@ describe('calculator of net income and insurance', () => {
   describe('expenses as flat-rate', () => {
     it('calculates net income and other values', () => {
       const expenses: Expenses = {
-        rate: 0.6, // 60%
+        percentage: 0.6, // 60%
       }
 
       expect(calculateNetIncome(income, expenses, rates)).toEqual({
