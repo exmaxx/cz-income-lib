@@ -1,4 +1,4 @@
-import { Rates } from './employee.types'
+import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from './employee.types'
 
 type NetIncomeResults = {
   /** The health insurance contributions for the employee and employer */
@@ -16,14 +16,14 @@ type NetIncomeResults = {
 }
 
 /**
- * Calculate the net income for an employee based on their salary and the tax rates.
+ * Calculate the income tax.
  *
+ * Important: When the salary is higher than the high rate threshold, the high rate is applied.
+ *
+ * @param incomeRates - The tax rates
  * @param salary - Monthly salary
- * @param rates - The tax and insurance rates
  */
-function calculateNetIncome(salary: number, rates: Rates): NetIncomeResults {
-  const { incomeRates, socialRates, healthRates } = rates
-
+function calculateIncomeTax(incomeRates: IncomeRates, salary: number) {
   const monthlyHighRateThreshold = incomeRates.highRateThreshold / 12
 
   let incomeTaxNormalRate = Math.ceil(salary * incomeRates.rate)
@@ -36,14 +36,36 @@ function calculateNetIncome(salary: number, rates: Rates): NetIncomeResults {
 
   const incomeTax = incomeTaxNormalRate + incomeTaxHighRate - incomeRates.credit
 
-  // TODO: this is for yearly salary, implement it; after the max base, the rate is 0
-  // const socialBase = Math.min(salary, socialRates.maxBase)
+  return { incomeTaxNormalRate, incomeTaxHighRate, incomeTax }
+}
 
-  const social = {
-    employee: salary * socialRates.employeeRate,
-    employer: salary * socialRates.employerRate,
+/**
+ * Calculate the social insurance contributions.
+ *
+ * Important: When the salary is higher than the maximum base, the rate is 0.
+ *
+ * @param salary
+ * @param socialRates
+ */
+function calculateSocial(salary: number, socialRates: SocialInsuranceRates) {
+  const socialBase = Math.min(salary, socialRates.maxBase / 12)
+
+  return {
+    employee: Math.ceil(socialBase * socialRates.employeeRate),
+    employer: Math.ceil(socialBase * socialRates.employerRate),
   }
+}
 
+/**
+ * Calculate the health insurance contributions.
+ *
+ * Important: When the health insurance contributions are less than the minimum amount,
+ * the employee pays the difference.
+ *
+ * @param salary
+ * @param healthRates
+ */
+function calculateHealth(salary: number, healthRates: HealthInsuranceRates) {
   const health = {
     employee: salary * healthRates.employeeRate,
     employer: salary * healthRates.employerRate,
@@ -54,6 +76,26 @@ function calculateNetIncome(salary: number, rates: Rates): NetIncomeResults {
   if (healthTotal < healthRates.minAmount) {
     health.employee = healthRates.minAmount - healthTotal
   }
+
+  return health
+}
+
+/**
+ * Calculate the net income for an employee based on their salary and the tax rates.
+ *
+ * @param salary - Monthly salary
+ * @param rates - The tax and insurance rates
+ */
+function calculateNetIncome(salary: number, rates: Rates): NetIncomeResults {
+  const { incomeRates, socialRates, healthRates } = rates
+
+  const { incomeTaxNormalRate, incomeTaxHighRate, incomeTax } = calculateIncomeTax(
+    incomeRates,
+    salary
+  )
+
+  const social = calculateSocial(salary, socialRates)
+  const health = calculateHealth(salary, healthRates)
 
   const netSalary = salary - incomeTax - social.employee - health.employee
 
