@@ -34,7 +34,7 @@ function calculateIncomeTax(incomeRates: IncomeRates, salary: number) {
     incomeTaxHighRate = Math.ceil((salary - monthlyHighRateThreshold) * incomeRates.highRate)
   }
 
-  const incomeTax = incomeTaxNormalRate + incomeTaxHighRate - incomeRates.credit
+  const incomeTax = Math.max(incomeTaxNormalRate + incomeTaxHighRate - incomeRates.credit, 0)
 
   return { incomeTaxNormalRate, incomeTaxHighRate, incomeTax }
 }
@@ -74,7 +74,7 @@ function calculateHealth(salary: number, healthRates: HealthInsuranceRates) {
   const healthTotal = health.employee + health.employer
 
   if (healthTotal < healthRates.minAmount) {
-    health.employee = healthRates.minAmount - healthTotal
+    health.employee = healthRates.minAmount - health.employer
   }
 
   return health
