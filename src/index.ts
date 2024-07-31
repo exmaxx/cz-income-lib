@@ -1,5 +1,5 @@
 import calculateFreelancer from './freelancer/netIncome'
-import calculateEmployee from './employee/employee'
+import calculateEmployee from "./employee/netIncome";
 
 export {
   calculateFreelancer,

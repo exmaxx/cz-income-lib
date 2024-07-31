@@ -3,6 +3,12 @@ export interface IncomeRates {
   rate: number
   /** The credit that is subtracted from the resulting tax */
   credit: number
+  /** The minimum allowed salary */
+  minSalary: number
+  /** The higher income tax rate */
+  highRate: number
+  /** The threshold for the higher income tax rate */
+  highRateThreshold: number
 }
 
 export interface SocialInsuranceRates {
@@ -10,6 +16,8 @@ export interface SocialInsuranceRates {
   employeeRate: number
   /** Social security rate for the employer */
   employerRate: number
+  /** The maximum base for social security contributions */
+  maxBase: number
 }
 
 export interface HealthInsuranceRates {
@@ -17,6 +25,8 @@ export interface HealthInsuranceRates {
   employeeRate: number
   /** Health insurance rate for the employer */
   employerRate: number
+  /** The minimum base for health insurance contributions */
+  minAmount: number
 }
 
 // TODO: Add Sickness Benefits Rates
