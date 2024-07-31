@@ -42,6 +42,10 @@ describe('calculator of net income and insurance', () => {
         socialAssessmentBase: 200000,
       })
     })
+
+    it('works with higher tax rate for high income', () => {
+      // TODO: 48-times the average salary per year, then add 23% tax
+    })
   })
 
   describe('expenses as real amount', () => {
@@ -102,6 +106,10 @@ describe('calculator of net income and insurance', () => {
       const { healthAssessmentBase } = calculateNetIncome(income, expenses, rates)
 
       expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
+    })
+
+    it('works with higher tax rate for high income', () => {
+      // TODO: 48-times the average salary per year, then add 23% tax
     })
   })
 })

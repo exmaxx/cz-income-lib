@@ -54,5 +54,9 @@ describe('calculate gross income', () => {
 
       expect(isAlmostEqual(result, grossIncome)).toBe(true)
     })
+
+    xit('works when maximal base for social insurance is reached', () => {
+      // tdb.
+    })
   })
 })
