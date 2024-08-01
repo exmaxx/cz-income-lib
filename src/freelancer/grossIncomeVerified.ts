@@ -55,7 +55,10 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
     return grossIncome
   }
 
-  grossIncome = estimateGrossIncome(netIncome, expenses, rates, { isMinHealthBaseForced: true })
+  grossIncome = estimateGrossIncome(netIncome, expenses, rates, {
+    isMinHealthBaseForced: true,
+  })
+
   verification = calculateNetIncome(grossIncome, expenses, rates)
 
   // due to rounding we accept a small difference
