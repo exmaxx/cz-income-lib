@@ -38,7 +38,7 @@ export interface HealthInsuranceRates {
 /**
  * Rates for income tax, social insurance, and health insurance.
  */
-export type Rates = {
+export interface Rates {
   incomeRates: IncomeRates
   socialRates: SocialInsuranceRates
   healthRates: HealthInsuranceRates

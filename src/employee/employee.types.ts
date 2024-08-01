@@ -31,7 +31,7 @@ export interface HealthInsuranceRates {
 
 // TODO: Add Sickness Benefits Rates
 
-export type Rates = {
+export interface Rates {
   incomeRates: IncomeRates
   socialRates: SocialInsuranceRates
   healthRates: HealthInsuranceRates

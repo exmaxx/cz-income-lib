@@ -1,6 +1,6 @@
 import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from './employee.types'
 
-type NetIncomeResults = {
+interface NetIncomeResults {
   /** The health insurance contributions for the employee and employer */
   health: { employee: number; employer: number }
   /** The total income tax, including both normal and high rates and the credit */
