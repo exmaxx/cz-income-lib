@@ -49,22 +49,23 @@ describe('calculator of net income and insurance', () => {
   })
 
   describe('expenses as real amount', () => {
-    it('sets income tax to zero if calculated as negative', () => {
+    it('calculates net income and other values', () => {
       const expenses: Expenses = {
         amount: 500000,
       }
 
-      const result = calculateNetIncome(income, expenses, rates)
+      const netIncomeDetails = calculateNetIncome(income, expenses, rates)
 
-      expect(result).toEqual({
-        health: 33750,
-        healthAssessmentBase: 250000,
-        incomeTax: 44160,
-        incomeTaxBase: 500000,
-        netIncome: 349090,
-        social: 73000,
-        socialAssessmentBase: 250000,
-      })
+      expect(netIncomeDetails).toEqual({
+          health: 33750,
+          healthAssessmentBase: 250000,
+          incomeTax: 44160,
+          incomeTaxBase: 500000,
+          netIncome: 349090,
+          social: 73000,
+          socialAssessmentBase: 250000,
+        }
+      )
     })
 
     it('calculates income tax as zero when negative', () => {

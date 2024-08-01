@@ -1,4 +1,4 @@
-// No tests, only fixtures
+// Fixtures for tests only
 
 import { Rates } from './freelancer.types'
 
