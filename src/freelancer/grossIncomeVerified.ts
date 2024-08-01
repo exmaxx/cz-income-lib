@@ -1,6 +1,6 @@
 import estimateGrossIncome from './grossIncome'
 import calculateNetIncome from './netIncome'
-import { isAlmostEqual } from './utils'
+import { isAlmostEqual } from '../utils'
 import { Expenses, Rates } from './freelancer.types'
 
 /**

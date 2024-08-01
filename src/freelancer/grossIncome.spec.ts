@@ -1,5 +1,5 @@
 import estimateGrossIncome from './grossIncome'
-import { isAlmostEqual } from './utils'
+import { isAlmostEqual } from '../utils'
 import { rates } from './freelancer.fixtures'
 
 describe('calculate gross income', () => {
