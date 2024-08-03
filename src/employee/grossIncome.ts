@@ -53,12 +53,16 @@ function getRatesCombined(rates: Rates, options: Options) {
   )
 }
 
-function getTaxAdjustments(options: Options, monthlyHighRateThreshold: number, incomeRates: IncomeRates) {
+function getTaxAdjustments(
+  options: Options,
+  incomeRates: IncomeRates
+) {
+  const { highRateThreshold } = incomeRates
   let tax = 0
 
   if (options.isTaxHighRate) {
     tax =
-      monthlyHighRateThreshold * incomeRates.highRate - monthlyHighRateThreshold * incomeRates.rate
+      highRateThreshold * incomeRates.highRate - highRateThreshold * incomeRates.rate
   }
 
   if (!options.isTaxZero) {
@@ -73,18 +77,17 @@ function getHealthAdjustments(options: Options, healthRates: HealthInsuranceRate
 }
 
 function getSocialAdjustments(options: Options, socialRates: SocialInsuranceRates) {
-  const socialMonthlyMaxBase = socialRates.maxBase / 12
+  const { maxBase } = socialRates
 
-  return options.isSocialMaxBase ? socialMonthlyMaxBase * socialRates.employeeRate : 0
+  return options.isSocialMaxBase ? maxBase * socialRates.employeeRate : 0
 }
 
 function calculateGrossIncome(netSalary: number, rates: Rates, options: Options = {}) {
   const { incomeRates, socialRates, healthRates } = rates
-  const monthlyHighRateThreshold = incomeRates.highRateThreshold / 12
 
   const top =
     netSalary -
-    getTaxAdjustments(options, monthlyHighRateThreshold, incomeRates) +
+    getTaxAdjustments(options, incomeRates) +
     getHealthAdjustments(options, healthRates) +
     getSocialAdjustments(options, socialRates)
 

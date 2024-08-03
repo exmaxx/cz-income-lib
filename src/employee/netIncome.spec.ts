@@ -3,103 +3,110 @@ import { rates } from './employee.fixtures'
 
 describe('Employee - Net Income', () => {
   it('calculates taxes and insurance for employee', () => {
-    expect(calculateNetIncome(100000, rates)).toEqual({
-      incomeTax: 12430,
-      incomeTaxNormalRate: 15000,
-      incomeTaxHighRate: 0,
-      netSalary: 75970,
-      social: {
-        employee: 7100,
-        employer: 24800,
-      },
+    // 100000 CZK per month
+    expect(calculateNetIncome(1200000, rates)).toEqual({
       health: {
-        employee: 4500,
-        employer: 9000,
+        employee: 54000,
+        employer: 108000,
+      },
+      incomeTax: 149160,
+      incomeTaxHighRate: 0,
+      incomeTaxNormalRate: 180000,
+      netSalary: 911640,
+      social: {
+        employee: 85200,
+        employer: 297600,
       },
     })
   })
 
   it('works for low income', () => {
-    expect(calculateNetIncome(20000, rates)).toEqual({
-      incomeTax: 430,
-      incomeTaxNormalRate: 3000,
-      incomeTaxHighRate: 0,
-      netSalary: 17250,
-      social: {
-        employee: 1420,
-        employer: 4960,
-      },
+    // 20000 CZK per month
+    expect(calculateNetIncome(240000, rates)).toEqual({
       health: {
-        employee: 900,
-        employer: 1800,
+        employee: 10800,
+        employer: 21600,
+      },
+      incomeTax: 5160,
+      incomeTaxHighRate: 0,
+      incomeTaxNormalRate: 36000,
+      netSalary: 207000,
+      social: {
+        employee: 17040,
+        employer: 59520,
       },
     })
   })
 
   it('works for income lower than minimal salary (e.g. part time)', () => {
-    expect(calculateNetIncome(3000, rates)).toEqual({
-      incomeTax: 0,
-      incomeTaxHighRate: 0,
-      incomeTaxNormalRate: 450,
-      netSalary: 505,
-      social: {
-        employee: 213,
-        employer: 744,
-      },
+    // 3000 CZK per month
+    expect(calculateNetIncome(36000, rates)).toEqual({
       health: {
-        employee: 2282,
-        employer: 270,
-      },
-    })
-  })
-
-  it('works for really really low salary', () => {
-    expect(calculateNetIncome(2000, rates)).toEqual({
-      health: {
-        employee: 2372,
-        employer: 180,
+        // internet calculators count this monthly and then multiply by 12, but we caclulate it yearly,
+        // so there might be a single-digit difference
+        employee: 27378,
+        employer: 3240,
       },
       incomeTax: 0,
       incomeTaxHighRate: 0,
-      incomeTaxNormalRate: 300,
-      netSalary: -514, // should he even work?
+      incomeTaxNormalRate: 5400,
+      netSalary: 6066,
       social: {
-        employee: 142,
-        employer: 496,
+        employee: 2556,
+        employer: 8928,
       },
     })
   })
 
-  it('adds tax for amounts above 3-times the average salary', () => {
-    expect(calculateNetIncome(170000, rates)).toEqual({
+  it('works for really really low salary (where employee must pay the difference to the minimum amount)', () => {
+    // 2000 CZK per month
+    expect(calculateNetIncome(24000, rates)).toEqual({
       health: {
-        employee: 7650,
-        employer: 15300,
+        employee: 28458, // not all internet calculators check for minimal health insurance (idnes.cz does)
+        employer: 2160,
       },
-      incomeTax: 25979,
-      incomeTaxHighRate: 8763,
-      incomeTaxNormalRate: 19786,
-      netSalary: 124301,
+      incomeTax: 0,
+      incomeTaxHighRate: 0,
+      incomeTaxNormalRate: 3600,
+      netSalary: -6162, // do it make even sense to work?
       social: {
-        employee: 12070,
-        employer: 42160,
+        employee: 1704,
+        employer: 5952,
       },
     })
   })
 
-  it('omits social insurance for amounts above 4-times the average salary', () => {
-    expect(calculateNetIncome(300000, rates)).toEqual({
+  it('adds tax for amounts above 36-times the average salary', () => {
+    // 170000 CZK per month
+    expect(calculateNetIncome(2040000, rates)).toEqual({
       health: {
-        employee: 13500,
-        employer: 27000,
+        employee: 91800,
+        employer: 183600,
       },
-      incomeTax: 55879,
-      incomeTaxHighRate: 38663,
-      incomeTaxNormalRate: 19786,
-      netSalary: 218134,
+      incomeTax: 311736,
+      incomeTaxHighRate: 105154,
+      incomeTaxNormalRate: 237422,
+      netSalary: 1491624,
       social: {
-        employee: 12487,
-        employer: 43616,
+        employee: 144840,
+        employer: 505920,
+      },
+    })
+  })
+
+  it('omits social insurance for amounts above 48-times the average salary', () => {
+    expect(calculateNetIncome(3600000, rates)).toEqual({
+      health: {
+        employee: 162000,
+        employer: 324000,
+      },
+      incomeTax: 670536,
+      incomeTaxHighRate: 463954,
+      incomeTaxNormalRate: 237422,
+      netSalary: 2617624,
+      social: {
+        employee: 149840,
+        employer: 892800,
       },
     })
   })

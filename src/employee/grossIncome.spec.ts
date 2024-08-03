@@ -4,10 +4,10 @@ import calculateGrossIncome from './grossIncome'
 describe('Employee - Gross Income', () => {
   it('calculates gross income out of net salary and rates', () => {
     // Setup
-    const netSalary = 75970
+    const netSalary = 911640
 
     // Expectations
-    const expectedGrossIncome = 100000
+    const expectedGrossIncome = 1200000
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates)
@@ -20,10 +20,10 @@ describe('Employee - Gross Income', () => {
     // (e.g. lower than minimal salary when working part-time)
 
     // Setup
-    const netSalary = 14964
+    const netSalary = 179583
 
     // Expectations
-    const expectedGrossIncome = 17199 // In real life it was 17200, but it's a rounding issue
+    const expectedGrossIncome = 206399 // In real life it was 206400 (17200 per month), but it's a rounding issue
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates, {
@@ -38,10 +38,10 @@ describe('Employee - Gross Income', () => {
     // (e.g. lower than minimal salary when working part-time)
 
     // Setup
-    const netSalary = 7638
+    const netSalary = 91662
 
     // Expectations
-    const expectedGrossIncome = 10000
+    const expectedGrossIncome = 120000
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates, {
@@ -55,10 +55,10 @@ describe('Employee - Gross Income', () => {
 
   it('works when higher tax rate is applied to high salary', () => {
     // Setup
-    const netSalary = 124301
+    const netSalary = 1491625
 
     // Expectations
-    const expectedGrossIncome = 169998 // In real life it was 170000, but it's a rounding issue
+    const expectedGrossIncome = 2040000 // In real life it was 170000, but it's a rounding issue
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates, {
@@ -71,10 +71,10 @@ describe('Employee - Gross Income', () => {
 
   it('works when maximal social insurance limit is reached', () => {
     // Setup
-    const netSalary = 218134
+    const netSalary = 2617625
 
     // Expectations
-    const expectedGrossIncome = 299998 // In real life it was 300000, but it's a rounding issue
+    const expectedGrossIncome = 3599999 // In real life it was 3600000 (300000 per month), but it's a rounding issue
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates, {

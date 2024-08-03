@@ -21,17 +21,17 @@ interface NetIncomeResults {
  * Important: When the salary is higher than the high rate threshold, the high rate is applied.
  *
  * @param incomeRates - The tax rates
- * @param salary - Monthly salary
+ * @param salary - Yearly salary
  */
 function calculateIncomeTax(incomeRates: IncomeRates, salary: number) {
-  const monthlyHighRateThreshold = incomeRates.highRateThreshold / 12
+  const { highRateThreshold } = incomeRates
 
   let incomeTaxNormalRate = Math.ceil(salary * incomeRates.rate)
   let incomeTaxHighRate = 0
 
-  if (salary > monthlyHighRateThreshold) {
-    incomeTaxNormalRate = Math.ceil(monthlyHighRateThreshold * incomeRates.rate)
-    incomeTaxHighRate = Math.ceil((salary - monthlyHighRateThreshold) * incomeRates.highRate)
+  if (salary > highRateThreshold) {
+    incomeTaxNormalRate = Math.ceil(highRateThreshold * incomeRates.rate)
+    incomeTaxHighRate = Math.ceil((salary - highRateThreshold) * incomeRates.highRate)
   }
 
   const incomeTax = Math.max(incomeTaxNormalRate + incomeTaxHighRate - incomeRates.credit, 0)
@@ -48,11 +48,11 @@ function calculateIncomeTax(incomeRates: IncomeRates, salary: number) {
  * @param socialRates
  */
 function calculateSocial(salary: number, socialRates: SocialInsuranceRates) {
-  const socialBase = Math.min(salary, socialRates.maxBase / 12)
+  const socialBaseEmployee = Math.min(salary, socialRates.maxBase)
 
   return {
-    employee: Math.ceil(socialBase * socialRates.employeeRate),
-    employer: Math.ceil(socialBase * socialRates.employerRate),
+    employee: Math.ceil(socialBaseEmployee * socialRates.employeeRate),
+    employer: Math.ceil(salary * socialRates.employerRate),
   }
 }
 
@@ -67,8 +67,8 @@ function calculateSocial(salary: number, socialRates: SocialInsuranceRates) {
  */
 function calculateHealth(salary: number, healthRates: HealthInsuranceRates) {
   const health = {
-    employee: salary * healthRates.employeeRate,
-    employer: salary * healthRates.employerRate,
+    employee: Math.ceil(salary * healthRates.employeeRate),
+    employer: Math.ceil(salary * healthRates.employerRate),
   }
 
   const healthTotal = health.employee + health.employer
@@ -83,7 +83,7 @@ function calculateHealth(salary: number, healthRates: HealthInsuranceRates) {
 /**
  * Calculate the net income for an employee based on their salary and the tax rates.
  *
- * @param salary - Monthly salary
+ * @param salary - Yearly salary
  * @param rates - The tax and insurance rates
  */
 function calculateNetIncome(salary: number, rates: Rates): NetIncomeResults {
