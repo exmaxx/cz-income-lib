@@ -1,4 +1,4 @@
-import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from './employee.types'
+import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
 
 interface NetIncomeResults {
   /** The health insurance contributions for the employee and employer */

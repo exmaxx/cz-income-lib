@@ -1,6 +1,6 @@
 // Fixtures for tests only
 
-import { Rates } from './employee.types'
+import { Rates } from './types'
 import { AVG_SALARY_MONTHLY, MIN_SALARY_MONTHLY } from './constants'
 
 // For 2024, amounts per year

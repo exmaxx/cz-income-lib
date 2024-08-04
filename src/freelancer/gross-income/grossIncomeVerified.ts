@@ -1,7 +1,7 @@
 import estimateGrossIncome from './grossIncome'
-import calculateNetIncome from './netIncome'
-import { isAlmostEqual } from '../utils'
-import { Expenses, Rates } from './freelancer.types'
+import calculateNetIncome from '../net-income/netIncome'
+import { isAlmostEqual } from '../../utils'
+import { Expenses, Rates } from '../types'
 
 /**
  * Calculates the gross income from the net income, expenses, and applicable rates doing multiple

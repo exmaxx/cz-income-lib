@@ -1,5 +1,5 @@
 import calculateNetIncome from './netIncome'
-import { Expenses, Rates } from './freelancer.types'
+import { Expenses, Rates } from '../types'
 
 describe('calculator of net income and insurance', () => {
   const AVG_SALARY = 40324

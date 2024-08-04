@@ -1,4 +1,4 @@
-import { Expenses, Rates } from './freelancer.types'
+import { Expenses, Rates } from '../types'
 
 type Options = {
   isMinHealthBaseForced?: boolean

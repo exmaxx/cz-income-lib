@@ -1,4 +1,4 @@
-import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from './employee.types'
+import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
 
 interface Options {
   /** When true, the minimal health insurance is covered by the employee */

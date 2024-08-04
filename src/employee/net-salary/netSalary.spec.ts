@@ -1,5 +1,5 @@
-import calculateNetIncome from './netIncome'
-import { rates } from './employee.fixtures'
+import calculateNetIncome from './netSalary'
+import { rates } from '../fixtures'
 
 describe('Employee - Net Income', () => {
   it('calculates taxes and insurance for employee', () => {

@@ -1,5 +1,5 @@
-import { rates } from './employee.fixtures'
-import calculateGrossIncome from './grossIncome'
+import { rates } from '../fixtures'
+import calculateGrossIncome from './grossSalary'
 
 describe('Employee - Gross Income', () => {
   it('calculates gross income out of net salary and rates', () => {

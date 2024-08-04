@@ -1,4 +1,4 @@
-import { rates } from './employee.fixtures'
+import { rates } from '../fixtures'
 import calculateGrossSalaryVerified from './grossSalaryVerified'
 
 describe('calculate gross salary', () => {

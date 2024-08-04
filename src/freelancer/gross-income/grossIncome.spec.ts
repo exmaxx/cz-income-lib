@@ -1,6 +1,6 @@
 import estimateGrossIncome from './grossIncome'
-import { isAlmostEqual } from '../utils'
-import { rates } from './freelancer.fixtures'
+import { isAlmostEqual } from '../../utils'
+import { rates } from '../fixtures'
 
 describe('calculate gross income', () => {
   const grossIncome = 1000000

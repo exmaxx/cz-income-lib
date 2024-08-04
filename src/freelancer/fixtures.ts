@@ -1,6 +1,6 @@
 // Fixtures for tests only
 
-import { Rates } from './freelancer.types'
+import { Rates } from './types'
 
 // For 2023
 const AVG_SALARY = 40324

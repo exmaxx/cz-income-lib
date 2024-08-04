@@ -1,8 +1,8 @@
 import calculateGrossIncomeVerified from './grossIncomeVerified'
-import calculateNetIncome from './netIncome'
-import { isAlmostEqual } from '../utils'
-import { rates } from './freelancer.fixtures'
-import { Expenses } from './freelancer.types'
+import calculateNetIncome from '../net-income/netIncome'
+import { isAlmostEqual } from '../../utils'
+import { rates } from '../fixtures'
+import { Expenses } from '../types'
 
 describe('calculate gross income', () => {
   const grossIncome = 1000000

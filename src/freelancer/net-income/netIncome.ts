@@ -4,7 +4,7 @@ import {
   IncomeRates,
   Rates,
   SocialInsuranceRates,
-} from './freelancer.types'
+} from '../types'
 
 /**
  * Rounds a number down to the nearest multiple of a given precision.
