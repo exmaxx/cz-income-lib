@@ -1,16 +1,14 @@
 // Fixtures for tests only
 
 import { Rates } from './employee.types'
-
-const MINIMAL_SALARY_MONTHLY = 18900 // per month
-const AVG_SALARY_MONTHLY = 43967 // per month
+import { AVG_SALARY_MONTHLY, MIN_SALARY_MONTHLY } from './constants'
 
 // For 2024, amounts per year
 const rates: Rates = {
   incomeRates: {
     rate: 0.15, // 15%
     credit: 30840,
-    minSalary: MINIMAL_SALARY_MONTHLY * 12,
+    minSalary: MIN_SALARY_MONTHLY * 12,
     highRate: 0.23, // 23%
     highRateThreshold: AVG_SALARY_MONTHLY * 36, // = 1582812; 36-times average salary per year (or 3-times the average salary per month)
   },
@@ -29,7 +27,7 @@ const rates: Rates = {
 }
 
 rates.healthRates.minAmount = Math.floor(
-  MINIMAL_SALARY_MONTHLY * 12 * (rates.healthRates.employeeRate + rates.healthRates.employerRate)
+  MIN_SALARY_MONTHLY * 12 * (rates.healthRates.employeeRate + rates.healthRates.employerRate)
 )
 
 export { rates }

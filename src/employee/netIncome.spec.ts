@@ -95,6 +95,7 @@ describe('Employee - Net Income', () => {
   })
 
   it('omits social insurance for amounts above 48-times the average salary', () => {
+    // 300000 CZK per month
     expect(calculateNetIncome(3600000, rates)).toEqual({
       health: {
         employee: 162000,

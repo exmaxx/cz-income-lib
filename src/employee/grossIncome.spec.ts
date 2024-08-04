@@ -7,7 +7,7 @@ describe('Employee - Gross Income', () => {
     const netSalary = 911640
 
     // Expectations
-    const expectedGrossIncome = 1200000
+    const expectedGrossIncome = 1200000 // i.e. 100000 per month
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates)
@@ -41,7 +41,7 @@ describe('Employee - Gross Income', () => {
     const netSalary = 91662
 
     // Expectations
-    const expectedGrossIncome = 120000
+    const expectedGrossIncome = 120000 // i.e. 10000 per month
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates, {
@@ -58,7 +58,7 @@ describe('Employee - Gross Income', () => {
     const netSalary = 1491625
 
     // Expectations
-    const expectedGrossIncome = 2040000 // In real life it was 170000, but it's a rounding issue
+    const expectedGrossIncome = 2040000 // i.e. 170000 per month
 
     // Execution
     const grossIncome = calculateGrossIncome(netSalary, rates, {
