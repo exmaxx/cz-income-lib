@@ -74,5 +74,13 @@ describe('calculate gross income', () => {
     it('throws exception for negative expenses', () => {
       expect(() => calculateGrossIncomeVerified(100000, { amount: -500000 }, rates)).toThrow()
     })
+
+    it('throws exception when no result', () => {
+      const incorrectRates = { ...rates }
+
+      incorrectRates.incomeRates.rate = 1
+
+      expect(() => calculateGrossIncomeVerified(349090, { amount: 500000 }, incorrectRates)).toThrow()
+    })
   })
 })

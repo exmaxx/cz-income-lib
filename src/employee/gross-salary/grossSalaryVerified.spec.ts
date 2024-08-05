@@ -73,4 +73,18 @@ describe('calculate gross salary', () => {
 
     expect(grossSalary).toEqual(expectedGrossSalary)
   })
+
+  it('throws exception when no result possible', () => {
+    const netSalary = 207000 // below average salary
+
+    const incorrectRates = {
+      ...rates,
+    }
+
+    incorrectRates.incomeRates.rate = 1
+    incorrectRates.socialRates.employeeRate = 0
+    incorrectRates.healthRates.employeeRate = 0
+
+    expect(() => calculateGrossSalaryVerified(netSalary, rates)).toThrow()
+  })
 })
