@@ -1,7 +1,11 @@
-import calculateFreelancer from './freelancer/net-income/netIncome'
-import calculateEmployee from "./employee/net-salary/netSalary";
+import calculateFreelancerNetIncome from './freelancer/net-income/netIncome'
+import calculateFreelancerGrossIncome from './freelancer/gross-income/grossIncomeVerified'
+import calculateEmployeeNetSalary from './employee/net-salary/netSalary'
+import calculateEmployeeGrossSalary from './employee/gross-salary/grossSalary'
 
 export {
-  calculateFreelancer,
-  calculateEmployee
+  calculateFreelancerNetIncome,
+  calculateFreelancerGrossIncome,
+  calculateEmployeeNetSalary,
+  calculateEmployeeGrossSalary,
 }
