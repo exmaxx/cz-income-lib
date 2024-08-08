@@ -71,7 +71,8 @@ function estimateGrossIncome(
   let result: number
 
   if ('percentage' in expenses) {
-    const bottom = 1 - (1 - expenses.percentage) * ratesCombined
+    const percentage = expenses.percentage || 0
+    const bottom = 1 - (1 - percentage) * ratesCombined
 
     result = Math.floor(top / bottom)
   } else {

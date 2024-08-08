@@ -1,10 +1,4 @@
-import {
-  Expenses,
-  HealthInsuranceRates,
-  IncomeRates,
-  Rates,
-  SocialInsuranceRates,
-} from '../types'
+import { Expenses, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
 
 /**
  * Rounds a number down to the nearest multiple of a given precision.
@@ -20,7 +14,9 @@ function calculateIncomeTaxBase(expenses: Expenses, income: number, incomeRates:
   let profit: number
 
   if ('percentage' in expenses) {
-    profit = income * (1 - expenses.percentage)
+    const percentage = expenses.percentage || 0
+
+    profit = income * (1 - percentage)
   } else {
     profit = income - expenses.amount
   }
@@ -86,7 +82,10 @@ function calculateNetIncome(grossIncome: number, expenses: Expenses, rates: Rate
   let netIncome = grossIncome - incomeTax - social - health
 
   if ('amount' in expenses) {
-    netIncome -= expenses.amount
+    if (expenses.amount) {
+      netIncome -= expenses.amount
+    }
+
     netIncome = Math.max(netIncome, 0)
   }
 

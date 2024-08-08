@@ -2,8 +2,9 @@ import calculateGrossIncome from './grossSalary'
 import calculateNetIncome from '../net-salary/netSalary'
 import { AVG_SALARY_MONTHLY } from '../constants'
 import { isAlmostEqual } from '../../utils'
+import { Rates } from '../types'
 
-function calculateGrossSalaryVerified(netSalary, rates) {
+function calculateGrossSalaryVerified(netSalary: number, rates: Rates) {
   let grossSalary = calculateGrossIncome(netSalary, rates)
   let verification = calculateNetIncome(grossSalary, rates)
 

@@ -94,9 +94,11 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
   const lowestTaxAndInsurance = verification.social + verification.health // tax is already 0, social and health base is at minimum
 
   if ('amount' in expenses) {
+    const amount = expenses.amount || 0
+
     // we are at the state where `expenses.amount + lowestTaxAndInsurance` together mean 0 net income
     // so to get the real gross income we need to add the original `netIncome`
-    grossIncome = expenses.amount + lowestTaxAndInsurance + netIncome
+    grossIncome = amount + lowestTaxAndInsurance + netIncome
   } else {
     throw new Error(
       'Unable to calculate gross income (flat-rate calculation should have not reached this point)'
