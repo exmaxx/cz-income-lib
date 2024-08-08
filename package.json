@@ -4,7 +4,9 @@
   "description": "Calculates taxes for self-employed and employees",
   "author": "Marek Ulicny",
   "license": "CC-BY-SA-4.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "prepublish": "tsc",
   "scripts": {
     "test": "jest"
   },
