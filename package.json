@@ -4,6 +4,10 @@
   "description": "Calculates taxes for self-employed and employees",
   "author": "Marek Ulicny",
   "license": "CC-BY-SA-4.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/exmaxx/cz-income-lib.git"
+  },
   "main": "./dist/lib/cjs/index.js",
   "module": "./dist/lib/esm/index.js",
   "types": "./dist/lib/cjs/index.d.ts",
