@@ -15,7 +15,6 @@
     "dist/lib/"
   ],
   "prepublishOnly": "yarn build:clean && yarn build:lib",
-  "private": true,
   "scripts": {
     "test": "jest",
     "build:bundle": "webpack",
