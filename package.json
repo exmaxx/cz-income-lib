@@ -1,6 +1,6 @@
 {
   "name": "@exmaxx/cz-income-lib",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Calculates taxes for self-employed and employees",
   "author": "Marek Ulicny",
   "license": "CC-BY-SA-4.0",
@@ -8,12 +8,20 @@
     "type": "git",
     "url": "git+https://github.com/exmaxx/cz-income-lib.git"
   },
+  "type": "module",
   "main": "./dist/lib/cjs/index.js",
   "module": "./dist/lib/esm/index.js",
   "types": "./dist/lib/cjs/index.d.ts",
   "files": [
     "dist/lib/"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/lib/esm/index.js",
+      "require": "./dist/lib/cjs/index.js",
+      "types": "./dist/lib/cjs/index.d.ts"
+    }
+  },
   "prepublishOnly": "yarn build:clean && yarn build:lib",
   "scripts": {
     "test": "jest",
