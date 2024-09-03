@@ -1,4 +1,10 @@
-import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
+import {
+  HealthInsuranceRates,
+  IncomeRates,
+  NetIncomeCalculationOptions,
+  Rates,
+  SocialInsuranceRates,
+} from '../types'
 
 interface NetIncomeResults {
   /** The health insurance contributions for the employee and employer */
@@ -15,6 +21,14 @@ interface NetIncomeResults {
   social: { employee: number; employer: number }
 }
 
+function calculateRate(
+  amount: number,
+  rate: number,
+  { isRoundingEnabled }: NetIncomeCalculationOptions
+) {
+  return isRoundingEnabled ? Math.ceil(amount * rate) : amount * rate
+}
+
 /**
  * Calculate the income tax.
  *
@@ -22,16 +36,21 @@ interface NetIncomeResults {
  *
  * @param incomeRates - The tax rates
  * @param salary - Yearly salary
+ * @param options - Options for the calculation
  */
-function calculateIncomeTax(incomeRates: IncomeRates, salary: number) {
-  const { highRateThreshold } = incomeRates
+function calculateIncomeTax(
+  incomeRates: IncomeRates,
+  salary: number,
+  options: NetIncomeCalculationOptions
+) {
+  const { highRateThreshold, rate, highRate } = incomeRates
 
-  let incomeTaxNormalRate = Math.ceil(salary * incomeRates.rate)
+  let incomeTaxNormalRate = calculateRate(salary, rate, options)
   let incomeTaxHighRate = 0
 
   if (salary > highRateThreshold) {
-    incomeTaxNormalRate = Math.ceil(highRateThreshold * incomeRates.rate)
-    incomeTaxHighRate = Math.ceil((salary - highRateThreshold) * incomeRates.highRate)
+    incomeTaxNormalRate = calculateRate(highRateThreshold, rate, options)
+    incomeTaxHighRate = calculateRate(salary - highRateThreshold, highRate, options)
   }
 
   const incomeTax = Math.max(incomeTaxNormalRate + incomeTaxHighRate - incomeRates.credit, 0)
@@ -46,13 +65,18 @@ function calculateIncomeTax(incomeRates: IncomeRates, salary: number) {
  *
  * @param salary
  * @param socialRates
+ * @param options
  */
-function calculateSocial(salary: number, socialRates: SocialInsuranceRates) {
-  const socialBaseEmployee = Math.min(salary, socialRates.maxBase)
+function calculateSocial(
+  salary: number,
+  { maxBase, employeeRate, employerRate }: SocialInsuranceRates,
+  options: NetIncomeCalculationOptions
+) {
+  const socialBaseEmployee = Math.min(salary, maxBase)
 
   return {
-    employee: Math.ceil(socialBaseEmployee * socialRates.employeeRate),
-    employer: Math.ceil(salary * socialRates.employerRate),
+    employee: calculateRate(socialBaseEmployee, employeeRate, options),
+    employer: calculateRate(salary, employerRate, options),
   }
 }
 
@@ -64,17 +88,22 @@ function calculateSocial(salary: number, socialRates: SocialInsuranceRates) {
  *
  * @param salary
  * @param healthRates
+ * @param options
  */
-function calculateHealth(salary: number, healthRates: HealthInsuranceRates) {
+function calculateHealth(
+  salary: number,
+  { minAmount, employeeRate, employerRate }: HealthInsuranceRates,
+  options: NetIncomeCalculationOptions
+) {
   const health = {
-    employee: Math.ceil(salary * healthRates.employeeRate),
-    employer: Math.ceil(salary * healthRates.employerRate),
+    employee: calculateRate(salary, employeeRate, options),
+    employer: calculateRate(salary, employerRate, options),
   }
 
   const healthTotal = health.employee + health.employer
 
-  if (healthTotal < healthRates.minAmount) {
-    health.employee = healthRates.minAmount - health.employer
+  if (healthTotal < minAmount) {
+    health.employee = minAmount - health.employer
   }
 
   return health
@@ -85,17 +114,26 @@ function calculateHealth(salary: number, healthRates: HealthInsuranceRates) {
  *
  * @param salary - Yearly salary
  * @param rates - The tax and insurance rates
+ * @param options - Options for the calculation
  */
-function calculateNetIncome(salary: number, rates: Rates): NetIncomeResults {
+// TODO: Rename to calculateNetSalary
+function calculateNetIncome(
+  salary: number,
+  rates: Rates,
+  options: NetIncomeCalculationOptions = { isRoundingEnabled: true }
+): NetIncomeResults {
   const { incomeRates, socialRates, healthRates } = rates
+
+  // TODO: Add rounding options. And disable rounding.
 
   const { incomeTaxNormalRate, incomeTaxHighRate, incomeTax } = calculateIncomeTax(
     incomeRates,
-    salary
+    salary,
+    options
   )
 
-  const social = calculateSocial(salary, socialRates)
-  const health = calculateHealth(salary, healthRates)
+  const social = calculateSocial(salary, socialRates, options)
+  const health = calculateHealth(salary, healthRates, options)
 
   const netSalary = salary - incomeTax - social.employee - health.employee
 

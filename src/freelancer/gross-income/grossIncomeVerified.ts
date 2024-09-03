@@ -1,6 +1,5 @@
 import estimateGrossIncome from './grossIncome'
 import calculateNetIncome from '../net-income/netIncome'
-import { isAlmostEqual } from '../../utils'
 import { Expenses, Rates } from '../types'
 
 /**
@@ -29,14 +28,8 @@ import { Expenses, Rates } from '../types'
  *
  * # Rounding
  *
- * Some small differences also appear due to rounding used in the original net income calculation.
- *
- * # "Almost equal" checks
- *
- * Due to things mentioned above, it is hard to get the exact original number back. Therefore, we use
- * the `isAlmostEqual` function to check if the result is close enough to the original number.
- *
- * > E.g. the result can be 1000000 CZK gross income, but also as 999999 CZK.
+ * For the calculation to work, the rounding must be disabled. Otherwise, the verification
+ * checks would fail. Especially the rounding to hundreds in social were causing the issues.
  *
  * @param netIncome - The income after taxes and insurance contributions
  * @param expenses - Either a fixed amount or a flat-rate percentage
@@ -48,10 +41,9 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
   }
 
   let grossIncome = estimateGrossIncome(netIncome, expenses, rates)
-  let verification = calculateNetIncome(grossIncome, expenses, rates)
+  let verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  // due to rounding we accept a small difference
-  if (isAlmostEqual(verification.netIncome, netIncome)) {
+  if (verification.netIncome === netIncome) {
     return grossIncome
   }
 
@@ -59,10 +51,9 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
     isMinHealthBaseForced: true,
   })
 
-  verification = calculateNetIncome(grossIncome, expenses, rates)
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  // due to rounding we accept a small difference
-  if (isAlmostEqual(verification.netIncome, netIncome)) {
+  if (verification.netIncome === netIncome) {
     return grossIncome
   }
 
@@ -71,10 +62,9 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
     isMinSocialBaseForced: true,
   })
 
-  verification = calculateNetIncome(grossIncome, expenses, rates)
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  // due to rounding we accept a small difference
-  if (isAlmostEqual(verification.netIncome, netIncome)) {
+  if (verification.netIncome === netIncome) {
     return grossIncome
   }
 
@@ -84,10 +74,9 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
     isIncomeTaxZero: true,
   })
 
-  verification = calculateNetIncome(grossIncome, expenses, rates)
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  // due to rounding we accept a small difference
-  if (isAlmostEqual(verification.netIncome, netIncome)) {
+  if (verification.netIncome === netIncome) {
     return grossIncome
   }
 
@@ -105,10 +94,9 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
     )
   }
 
-  verification = calculateNetIncome(grossIncome, expenses, rates)
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  // due to rounding we accept a small difference
-  if (isAlmostEqual(verification.netIncome, netIncome)) {
+  if (verification.netIncome === netIncome) {
     return grossIncome
   }
 

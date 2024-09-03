@@ -1,4 +1,11 @@
-import { Expenses, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
+import {
+  Expenses,
+  HealthInsuranceRates,
+  IncomeRates,
+  NetIncomeCalculationOptions,
+  Rates,
+  SocialInsuranceRates,
+} from '../types'
 
 /**
  * Rounds a number down to the nearest multiple of a given precision.
@@ -10,7 +17,12 @@ function roundDown(value: number, precision: number) {
 /**
  * Calculates the income tax base based on the expenses and income rates.
  */
-function calculateIncomeTaxBase(expenses: Expenses, income: number, incomeRates: IncomeRates) {
+function calculateIncomeTaxBase(
+  expenses: Expenses,
+  income: number,
+  incomeRates: IncomeRates,
+  { isRoundingEnabled }: NetIncomeCalculationOptions
+) {
   let profit: number
 
   if ('percentage' in expenses) {
@@ -21,20 +33,40 @@ function calculateIncomeTaxBase(expenses: Expenses, income: number, incomeRates:
     profit = income - expenses.amount
   }
 
-  return Math.max(roundDown(profit - incomeRates.nonTaxable, 100), 0)
+  const taxableProfit = profit - incomeRates.nonTaxable
+
+  if (taxableProfit <= 0) {
+    return 0
+  }
+
+  return isRoundingEnabled ? roundDown(taxableProfit, 100) : taxableProfit
 }
 
 /**
  * Calculates the income tax based on the income tax base and the income rates.
  */
-function calculateIncomeTax(incomeTaxBase: number, incomeRates: IncomeRates) {
-  return Math.max(Math.ceil(incomeTaxBase * incomeRates.rate - incomeRates.credit), 0)
+function calculateIncomeTax(
+  incomeTaxBase: number,
+  incomeRates: IncomeRates,
+  { isRoundingEnabled }: NetIncomeCalculationOptions
+) {
+  const incomeTax = incomeTaxBase * incomeRates.rate - incomeRates.credit
+
+  if (incomeTax <= 0) {
+    return 0
+  }
+
+  return isRoundingEnabled ? Math.ceil(incomeTax) : incomeTax
 }
 
 /**
  * Calculates the social insurance contributions based on the income tax base and the social rates.
  */
-function calculateSocial(incomeTaxBase: number, socialRates: SocialInsuranceRates) {
+function calculateSocial(
+  incomeTaxBase: number,
+  socialRates: SocialInsuranceRates,
+  { isRoundingEnabled }: NetIncomeCalculationOptions
+) {
   let socialAssessmentBase = Math.max(
     incomeTaxBase * socialRates.basePercentage,
     socialRates.minBase
@@ -42,23 +74,27 @@ function calculateSocial(incomeTaxBase: number, socialRates: SocialInsuranceRate
 
   socialAssessmentBase = Math.min(socialAssessmentBase, socialRates.maxBase)
 
-  const social = Math.ceil(socialAssessmentBase * socialRates.rate)
+  const social = socialAssessmentBase * socialRates.rate
 
-  return { socialAssessmentBase, social }
+  return { socialAssessmentBase, social: isRoundingEnabled ? Math.ceil(social) : social }
 }
 
 /**
  * Calculates the health insurance contributions based on the income tax base and the health rates.
  */
-function calculateHealth(incomeTaxBase: number, healthRates: HealthInsuranceRates) {
+function calculateHealth(
+  incomeTaxBase: number,
+  healthRates: HealthInsuranceRates,
+  { isRoundingEnabled }: NetIncomeCalculationOptions
+) {
   const healthAssessmentBase = Math.max(
     incomeTaxBase * healthRates.basePercentage,
     healthRates.minBase
   )
 
-  const health = Math.ceil(healthAssessmentBase * healthRates.rate)
+  const health = healthAssessmentBase * healthRates.rate
 
-  return { healthAssessmentBase, health }
+  return { healthAssessmentBase, health: isRoundingEnabled ? Math.ceil(health) : health }
 }
 
 /**
@@ -69,15 +105,21 @@ function calculateHealth(incomeTaxBase: number, healthRates: HealthInsuranceRate
  * @param expenses - The expenses, represented either as a fixed amount or a flat-rate percentage
  *  of the income
  * @param rates - The rates for income tax, social insurance, and health insurance
+ * @param options - Additional options for the calculation
  * @returns An object containing detailed calculations of taxes and insurance contributions
  */
-function calculateNetIncome(grossIncome: number, expenses: Expenses, rates: Rates) {
+function calculateNetIncome(
+  grossIncome: number,
+  expenses: Expenses,
+  rates: Rates,
+  options: NetIncomeCalculationOptions = { isRoundingEnabled: true }
+) {
   const { incomeRates, socialRates, healthRates } = rates
 
-  const incomeTaxBase = calculateIncomeTaxBase(expenses, grossIncome, incomeRates)
-  const incomeTax = calculateIncomeTax(incomeTaxBase, incomeRates)
-  const { socialAssessmentBase, social } = calculateSocial(incomeTaxBase, socialRates)
-  const { healthAssessmentBase, health } = calculateHealth(incomeTaxBase, healthRates)
+  const incomeTaxBase = calculateIncomeTaxBase(expenses, grossIncome, incomeRates, options)
+  const incomeTax = calculateIncomeTax(incomeTaxBase, incomeRates, options)
+  const { socialAssessmentBase, social } = calculateSocial(incomeTaxBase, socialRates, options)
+  const { healthAssessmentBase, health } = calculateHealth(incomeTaxBase, healthRates, options)
 
   let netIncome = grossIncome - incomeTax - social - health
 
@@ -86,6 +128,7 @@ function calculateNetIncome(grossIncome: number, expenses: Expenses, rates: Rate
       netIncome -= expenses.amount
     }
 
+    // netIncome = netIncome
     netIncome = Math.max(netIncome, 0)
   }
 

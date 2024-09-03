@@ -1,6 +1,6 @@
 import estimateGrossIncome from './grossIncome'
-import { isAlmostEqual } from '../../utils'
 import { rates } from '../fixtures'
+import calculateNetIncome from '../net-income/netIncome'
 
 describe('calculate gross income', () => {
   const grossIncome = 1000000
@@ -22,37 +22,61 @@ describe('calculate gross income', () => {
 
   describe('expenses as real amount', () => {
     it('estimates gross income from net income', () => {
-      expect(estimateGrossIncome(349090, { amount: 500000 }, rates)).toEqual(grossIncome)
+      const expenses = { amount: 500000 }
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      expect(estimateGrossIncome(netIncome, expenses, rates)).toEqual(grossIncome)
     })
 
     it('works when minimal base for health insurance is reached', () => {
-      const result = estimateGrossIncome(210000, { amount: 700000 }, rates, {
+      const expenses = { amount: 700000 }
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      const result = estimateGrossIncome(netIncome, expenses, rates, {
+        // const result = estimateGrossIncome(210000, expenses, rates, {
         isMinHealthBaseForced: true,
       })
 
-      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      expect(result).toBeCloseTo(grossIncome)
     })
 
     it('works when minimal base for social insurance is reached', () => {
-      const result = estimateGrossIncome(150000, { amount: 780000 }, rates, {
+      const expenses = { amount: 780000 }
+
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      const estimatedGrossIncome = estimateGrossIncome(netIncome, expenses, rates, {
         // min. health base must be used because when social threshold is applied in the original net income calculation,
         // the health base must have already been applied also (health base is higher) - at least it holds for 2023 rates
         isMinHealthBaseForced: true,
         isMinSocialBaseForced: true,
       })
 
-      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      expect(estimatedGrossIncome).toBeCloseTo(grossIncome)
     })
 
     it('works when zero income tax is reached', () => {
-      const result = estimateGrossIncome(132000, { amount: 800000 }, rates, {
+      const expenses = { amount: 800000 }
+
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      const result = estimateGrossIncome(netIncome, expenses, rates, {
         // again, when zero tax option is used, the health and social base must be used as well
         isMinHealthBaseForced: true,
         isMinSocialBaseForced: true,
         isIncomeTaxZero: true,
       })
 
-      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      // expect(result, grossIncome)).toBe(true)
+      expect(result).toEqual(grossIncome)
     })
 
     xit('works when maximal base for social insurance is reached', () => {

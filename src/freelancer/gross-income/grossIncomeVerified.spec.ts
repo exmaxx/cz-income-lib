@@ -1,11 +1,10 @@
 import calculateGrossIncomeVerified from './grossIncomeVerified'
 import calculateNetIncome from '../net-income/netIncome'
-import { isAlmostEqual } from '../../utils'
 import { rates } from '../fixtures'
 import { Expenses } from '../types'
 
 describe('calculate gross income', () => {
-  const grossIncome = 1000000
+  const grossIncome = 1000000 // TODO: Try 10000000
 
   it('returns 0 for a net income of 0', () => {
     expect(calculateGrossIncomeVerified(0, { percentage: 0.6 }, rates)).toEqual(0)
@@ -18,15 +17,40 @@ describe('calculate gross income', () => {
   })
 
   describe('expenses as flat-rate percentage', () => {
-    it('calculates gross income from net income', () => {
-      expect(calculateGrossIncomeVerified(812740, { percentage: 0.4 }, rates)).toEqual(grossIncome)
-      expect(calculateGrossIncomeVerified(879778, { percentage: 0.6 }, rates)).toEqual(grossIncome)
+    it('calculates gross income from net income (40% rate)', () => {
+      const expenses: Expenses = {
+        percentage: 0.4,
+      }
+
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      expect(calculateGrossIncomeVerified(netIncome, expenses, rates)).toBeCloseTo(grossIncome, 5)
+    })
+
+    it('calculates gross income from net income (60% rate)', () => {
+      const expenses: Expenses = {
+        percentage: 0.6,
+      }
+
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      expect(calculateGrossIncomeVerified(netIncome, expenses, rates)).toBeCloseTo(grossIncome, 5)
     })
   })
 
   describe('expenses as real amount', () => {
     it('calculates gross income from net income', () => {
-      expect(calculateGrossIncomeVerified(349090, { amount: 500000 }, rates)).toEqual(grossIncome)
+      const expenses = { amount: 500000 }
+
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      expect(calculateGrossIncomeVerified(netIncome, expenses, rates)).toEqual(grossIncome)
     })
 
     it('works when minimal base for health insurance is reached', () => {
@@ -34,13 +58,17 @@ describe('calculate gross income', () => {
         amount: 700000,
       }
 
-      const { netIncome, healthAssessmentBase } = calculateNetIncome(grossIncome, expenses, rates)
+      const { netIncome, healthAssessmentBase } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      console.log('netIncome:', netIncome)
 
       expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
 
       const result = calculateGrossIncomeVerified(netIncome, expenses, rates)
 
-      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      expect(result).toBeCloseTo(grossIncome)
     })
 
     it('works when minimal base for social insurance is reached', () => {
@@ -48,13 +76,16 @@ describe('calculate gross income', () => {
         amount: 780000,
       }
 
-      const { netIncome, socialAssessmentBase } = calculateNetIncome(grossIncome, expenses, rates)
+      const { netIncome, socialAssessmentBase } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
 
       expect(socialAssessmentBase).toEqual(rates.socialRates.minBase)
 
       const result = calculateGrossIncomeVerified(netIncome, expenses, rates)
 
-      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      // expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      expect(result).toEqual(grossIncome)
     })
 
     it('works when zero income tax is reached', () => {
@@ -62,13 +93,16 @@ describe('calculate gross income', () => {
         amount: 800000,
       }
 
-      const { netIncome, incomeTax } = calculateNetIncome(grossIncome, expenses, rates)
+      const { netIncome, incomeTax } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
 
       expect(incomeTax).toBe(0)
 
       const result = calculateGrossIncomeVerified(netIncome, expenses, rates)
 
-      expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      // expect(isAlmostEqual(result, grossIncome)).toBe(true)
+      expect(result).toEqual(grossIncome)
     })
 
     it('throws exception for negative expenses', () => {
@@ -80,7 +114,9 @@ describe('calculate gross income', () => {
 
       incorrectRates.incomeRates.rate = 1
 
-      expect(() => calculateGrossIncomeVerified(349090, { amount: 500000 }, incorrectRates)).toThrow()
+      expect(() =>
+        calculateGrossIncomeVerified(349090, { amount: 500000 }, incorrectRates)
+      ).toThrow()
     })
   })
 })
