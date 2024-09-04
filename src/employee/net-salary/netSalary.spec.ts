@@ -1,10 +1,10 @@
-import calculateNetIncome from './netSalary'
+import calculateNetSalary from './netSalary'
 import { rates } from '../fixtures'
 
 describe('Employee - Net Income', () => {
   it('calculates taxes and insurance for employee', () => {
     // 100000 CZK per month
-    expect(calculateNetIncome(1200000, rates)).toEqual({
+    expect(calculateNetSalary(1200000, rates)).toEqual({
       health: {
         employee: 54000,
         employer: 108000,
@@ -22,7 +22,7 @@ describe('Employee - Net Income', () => {
 
   it('works for low income', () => {
     // 20000 CZK per month
-    expect(calculateNetIncome(240000, rates)).toEqual({
+    expect(calculateNetSalary(240000, rates)).toEqual({
       health: {
         employee: 10800,
         employer: 21600,
@@ -40,7 +40,7 @@ describe('Employee - Net Income', () => {
 
   it('works for income lower than minimal salary (e.g. part time)', () => {
     // 3000 CZK per month
-    expect(calculateNetIncome(36000, rates)).toEqual({
+    expect(calculateNetSalary(36000, rates)).toEqual({
       health: {
         // internet calculators count this monthly and then multiply by 12, but we caclulate it yearly,
         // so there might be a single-digit difference
@@ -60,7 +60,7 @@ describe('Employee - Net Income', () => {
 
   it('works for really really low salary (where employee must pay the difference to the minimum amount)', () => {
     // 2000 CZK per month
-    expect(calculateNetIncome(24000, rates)).toEqual({
+    expect(calculateNetSalary(24000, rates)).toEqual({
       health: {
         employee: 28458, // not all internet calculators check for minimal health insurance (idnes.cz does)
         employer: 2160,
@@ -78,7 +78,7 @@ describe('Employee - Net Income', () => {
 
   it('adds tax for amounts above 36-times the average salary', () => {
     // 170000 CZK per month
-    expect(calculateNetIncome(2040000, rates)).toEqual({
+    expect(calculateNetSalary(2040000, rates)).toEqual({
       health: {
         employee: 91800,
         employer: 183600,
@@ -96,7 +96,7 @@ describe('Employee - Net Income', () => {
 
   it('omits social insurance for amounts above 48-times the average salary', () => {
     // 300000 CZK per month
-    expect(calculateNetIncome(3600000, rates)).toEqual({
+    expect(calculateNetSalary(3600000, rates)).toEqual({
       health: {
         employee: 162000,
         employer: 324000,

@@ -6,7 +6,7 @@ import {
   SocialInsuranceRates,
 } from '../types'
 
-interface NetIncomeResults {
+interface NetSalaryResults {
   /** The health insurance contributions for the employee and employer */
   health: { employee: number; employer: number }
   /** The total income tax, including both normal and high rates and the credit */
@@ -116,15 +116,12 @@ function calculateHealth(
  * @param rates - The tax and insurance rates
  * @param options - Options for the calculation
  */
-// TODO: Rename to calculateNetSalary
-function calculateNetIncome(
+function calculateNetSalary(
   salary: number,
   rates: Rates,
   options: NetIncomeCalculationOptions = { isRoundingEnabled: true }
-): NetIncomeResults {
+): NetSalaryResults {
   const { incomeRates, socialRates, healthRates } = rates
-
-  // TODO: Add rounding options. And disable rounding.
 
   const { incomeTaxNormalRate, incomeTaxHighRate, incomeTax } = calculateIncomeTax(
     incomeRates,
@@ -140,4 +137,4 @@ function calculateNetIncome(
   return { incomeTax, incomeTaxNormalRate, incomeTaxHighRate, social, health, netSalary }
 }
 
-export default calculateNetIncome
+export default calculateNetSalary

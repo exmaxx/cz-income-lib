@@ -62,8 +62,6 @@ describe('calculate gross income', () => {
         isRoundingEnabled: false,
       })
 
-      console.log('netIncome:', netIncome)
-
       expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
 
       const result = calculateGrossIncomeVerified(netIncome, expenses, rates)

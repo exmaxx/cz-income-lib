@@ -32,8 +32,6 @@ describe('calculator of net income and insurance', () => {
         percentage: 0.6, // 60%
       }
 
-      console.log('calculateNetIncome(income, expenses, rates):', calculateNetIncome(income, expenses, rates))
-
       expect(calculateNetIncome(income, expenses, rates)).toEqual({
         health: 32663,
         healthAssessmentBase: 241944,

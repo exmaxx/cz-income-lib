@@ -1,11 +1,11 @@
 import calculateGrossIncome from './grossSalary'
-import calculateNetIncome from '../net-salary/netSalary'
+import calculateNetSalary from '../net-salary/netSalary'
 import { AVG_SALARY_MONTHLY } from '../constants'
 import { Rates } from '../types'
 
 function calculateGrossSalaryVerified(netSalary: number, rates: Rates): number {
   let grossSalary = calculateGrossIncome(netSalary, rates)
-  let verification = calculateNetIncome(grossSalary, rates, { isRoundingEnabled: false })
+  let verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
   if (verification.netSalary === netSalary) {
     return grossSalary
@@ -18,7 +18,7 @@ function calculateGrossSalaryVerified(netSalary: number, rates: Rates): number {
       isMinHealthForced: true,
     })
 
-    verification = calculateNetIncome(grossSalary, rates, { isRoundingEnabled: false })
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
     if (verification.netSalary === netSalary) {
       return grossSalary
@@ -29,7 +29,7 @@ function calculateGrossSalaryVerified(netSalary: number, rates: Rates): number {
       isTaxZero: true,
     })
 
-    verification = calculateNetIncome(grossSalary, rates, { isRoundingEnabled: false })
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
     if (verification.netSalary === netSalary) {
       // in the edge case, for larger negative net income, the gross salary can be negative -> we return 0 instead
@@ -40,7 +40,7 @@ function calculateGrossSalaryVerified(netSalary: number, rates: Rates): number {
       isTaxHighRate: true,
     })
 
-    verification = calculateNetIncome(grossSalary, rates, { isRoundingEnabled: false })
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
     if (verification.netSalary === netSalary) {
       return grossSalary
@@ -51,7 +51,7 @@ function calculateGrossSalaryVerified(netSalary: number, rates: Rates): number {
       isSocialMaxBase: true,
     })
 
-    verification = calculateNetIncome(grossSalary, rates, { isRoundingEnabled: false })
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
     if (verification.netSalary === netSalary) {
       return grossSalary
