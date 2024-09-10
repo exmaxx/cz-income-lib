@@ -2,83 +2,152 @@ import estimateGrossIncome from './grossIncome'
 import { rates } from '../fixtures'
 import calculateNetIncome from '../net-income/netIncome'
 
-describe('calculate gross income', () => {
-  const grossIncome = 1000000
+describe('estimates gross income from net income', () => {
+  const income = 1000000
+  const highIncome = 10000000
 
   describe('expenses as flat-rate percentage', () => {
-    it('estimates gross income from net income', () => {
-      expect(estimateGrossIncome(812740, { percentage: 0.4 }, rates)).toEqual(grossIncome)
-      expect(estimateGrossIncome(1312740, { percentage: 0.6 }, rates)).toEqual(1500000)
+    describe('normal income', () => {
+      it.each([
+        { percentage: 0.3, gross: income },
+        { percentage: 0.4, gross: income },
+        { percentage: 0.6, gross: 1500000 },
+      ])('flat-rate: $percentage', ({ percentage, gross }) => {
+        const expenses = { percentage }
+
+        const { netIncome } = calculateNetIncome(gross, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const result = estimateGrossIncome(netIncome, expenses, rates)
+        expect(result).toEqual(gross)
+      })
     })
 
-    it('returns 0 for a net income of 0', () => {
-      expect(estimateGrossIncome(0, { percentage: 0.6 }, rates)).toEqual(0)
+    describe('low income', () => {
+      it('returns 0 for a net income of 0', () => {
+        expect(estimateGrossIncome(0, { percentage: 0.6 }, rates)).toEqual(0)
+      })
+
+      it('returns 0 for a negative net income', () => {
+        expect(estimateGrossIncome(-1000, { percentage: 0.6 }, rates)).toEqual(0)
+      })
     })
 
-    it('returns 0 for a negative net income', () => {
-      expect(estimateGrossIncome(-1000, { percentage: 0.6 }, rates)).toEqual(0)
+    describe('high income', () => {
+      it.each([
+        { percentage: 0.3, gross: highIncome },
+        { percentage: 0.4, gross: highIncome },
+        { percentage: 0.6, gross: highIncome },
+        { percentage: 0.8, gross: highIncome },
+      ])('flat-rate (high income): $percentage', ({ percentage, gross }) => {
+        const expenses = { percentage }
+
+        const { netIncome } = calculateNetIncome(gross, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const result = estimateGrossIncome(netIncome, expenses, rates, {
+          isHighRateIncomeTaxForced: true,
+          isMaxFlatRateForced: true,
+          isMaxSocialBaseForced: true,
+        })
+
+        expect(result).toEqual(gross)
+      })
     })
   })
 
   describe('expenses as real amount', () => {
-    it('estimates gross income from net income', () => {
-      const expenses = { amount: 500000 }
-      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
-        isRoundingEnabled: false,
-      })
+    describe('normal income', () => {
+      it('estimates gross income from net income', () => {
+        const expenses = { amount: 500000 }
+        const { netIncome } = calculateNetIncome(income, expenses, rates, {
+          isRoundingEnabled: false,
+        })
 
-      expect(estimateGrossIncome(netIncome, expenses, rates)).toEqual(grossIncome)
+        expect(estimateGrossIncome(netIncome, expenses, rates)).toEqual(income)
+      })
     })
 
-    it('works when minimal base for health insurance is reached', () => {
-      const expenses = { amount: 700000 }
-      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
-        isRoundingEnabled: false,
+    describe('low income', () => {
+      it('works when minimal base for health insurance is reached', () => {
+        const expenses = { amount: 700000 }
+        const { netIncome } = calculateNetIncome(income, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const result = estimateGrossIncome(netIncome, expenses, rates, {
+          isMinHealthBaseForced: true,
+        })
+
+        expect(result).toBeCloseTo(income)
       })
 
-      const result = estimateGrossIncome(netIncome, expenses, rates, {
-        isMinHealthBaseForced: true,
+      it('works when minimal base for social insurance is reached', () => {
+        const expenses = { amount: 780000 }
+
+        const { netIncome } = calculateNetIncome(income, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const estimatedGrossIncome = estimateGrossIncome(netIncome, expenses, rates, {
+          // min. health base must be used because when social threshold is applied in the original net income calculation,
+          // the health base must have already been applied also (health base is higher) - at least it holds for 2023 rates
+          isMinHealthBaseForced: true,
+          isMinSocialBaseForced: true,
+        })
+
+        expect(estimatedGrossIncome).toBeCloseTo(income)
       })
 
-      expect(result).toBeCloseTo(grossIncome)
+      it('works when zero income tax is reached', () => {
+        const expenses = { amount: 800000 }
+
+        const { netIncome } = calculateNetIncome(income, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const result = estimateGrossIncome(netIncome, expenses, rates, {
+          // again, when zero tax option is used, the health and social base must be used as well
+          isMinHealthBaseForced: true,
+          isMinSocialBaseForced: true,
+          isIncomeTaxZero: true,
+        })
+
+        expect(result).toEqual(income)
+      })
     })
 
-    it('works when minimal base for social insurance is reached', () => {
-      const expenses = { amount: 780000 }
+    describe('high income', () => {
+      it('works when high tax is reached', () => {
+        const expenses = { amount: 8000000 }
 
-      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
-        isRoundingEnabled: false,
+        const { netIncome } = calculateNetIncome(highIncome, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const result = estimateGrossIncome(netIncome, expenses, rates, {
+          isHighRateIncomeTaxForced: true,
+        })
+
+        expect(result).toEqual(highIncome)
       })
 
-      const estimatedGrossIncome = estimateGrossIncome(netIncome, expenses, rates, {
-        // min. health base must be used because when social threshold is applied in the original net income calculation,
-        // the health base must have already been applied also (health base is higher) - at least it holds for 2023 rates
-        isMinHealthBaseForced: true,
-        isMinSocialBaseForced: true,
+      it('works when maximal base for social insurance is reached', () => {
+        const expenses = { amount: 6000000 }
+
+        const { netIncome } = calculateNetIncome(highIncome, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const result = estimateGrossIncome(netIncome, expenses, rates, {
+          isHighRateIncomeTaxForced: true,
+          isMaxSocialBaseForced: true,
+        })
+
+        expect(result).toEqual(highIncome)
       })
-
-      expect(estimatedGrossIncome).toBeCloseTo(grossIncome)
-    })
-
-    it('works when zero income tax is reached', () => {
-      const expenses = { amount: 800000 }
-
-      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
-        isRoundingEnabled: false,
-      })
-
-      const result = estimateGrossIncome(netIncome, expenses, rates, {
-        // again, when zero tax option is used, the health and social base must be used as well
-        isMinHealthBaseForced: true,
-        isMinSocialBaseForced: true,
-        isIncomeTaxZero: true,
-      })
-
-      expect(result).toEqual(grossIncome)
-    })
-
-    xit('works when maximal base for social insurance is reached', () => {
-      // tdb.
     })
   })
 })

@@ -1,9 +1,162 @@
-import { Expenses, Rates } from '../types'
+import { Expenses, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
+import { MAX_FLAT_RATE_AMOUNT } from '../constants'
 
-type Options = {
+type HighIncomeOptions = {
+  isHighRateIncomeTaxForced?: boolean
+  isIncomeTaxZero?: never
+  isMaxFlatRateForced?: boolean
+  isMaxSocialBaseForced?: boolean
+  isMinHealthBaseForced?: never
+  isMinSocialBaseForced?: never
+}
+
+type LowIncomeOptions = {
+  isHighRateIncomeTaxForced?: never
+  isIncomeTaxZero?: boolean
+  isMaxFlatRateForced?: never
+  isMaxSocialBaseForced?: never
   isMinHealthBaseForced?: boolean
   isMinSocialBaseForced?: boolean
-  isIncomeTaxZero?: boolean
+}
+
+/**
+ * Options for the gross income estimation.
+ *
+ * Some options are mutually exclusive. You either aim for low income or high income and use corresponding options.
+ */
+type Options = HighIncomeOptions | LowIncomeOptions
+
+/**
+ * Calculates the real profit from the expenses. In case of flat-rate percentage expenses, the real profit
+ * is the whole gross income.
+ *
+ * @param expenses
+ */
+function getRealProfit(expenses: Expenses) {
+  const { amount } = expenses
+
+  let grossIncomeMultiple = 1
+  let sum = 0
+
+  if (amount) {
+    sum = -amount
+  }
+
+  return {
+    grossIncomeMultiple,
+    sum,
+  }
+}
+
+/**
+ * A profit that is used within other calculations. It takes into account either a fixed amount expenses
+ * or a flat-rate percentage.
+ *
+ * @param expenses
+ * @param isMaxFlatRateForced
+ */
+function getVirtualProfit(expenses: Expenses, { isMaxFlatRateForced }: Options = {}) {
+  const { amount, percentage } = expenses
+
+  let grossIncomeMultiplier = 1
+  let sum = 0
+
+  if (percentage) {
+    if (isMaxFlatRateForced) {
+      sum = -MAX_FLAT_RATE_AMOUNT * percentage
+    } else {
+      grossIncomeMultiplier = 1 - percentage
+    }
+  } else if (amount) {
+    sum = -amount
+  }
+
+  return {
+    grossIncomeMultiple: grossIncomeMultiplier,
+    sum,
+  }
+}
+
+function getTax(expenses: Expenses, incomeRates: IncomeRates, options: Options = {}) {
+  const { isIncomeTaxZero, isHighRateIncomeTaxForced } = options
+
+  let grossIncomeMultiple = 0
+  let sum = 0
+
+  const profit = getVirtualProfit(expenses, options)
+
+  if (!isIncomeTaxZero) {
+    grossIncomeMultiple = profit.grossIncomeMultiple * incomeRates.rate
+
+    sum =
+      profit.sum * incomeRates.rate - incomeRates.nonTaxable * incomeRates.rate - incomeRates.credit
+
+    if (isHighRateIncomeTaxForced) {
+      const highTax = {
+        grossIncomeMultiple: profit.grossIncomeMultiple * incomeRates.highRate,
+        sum:
+          (profit.sum - incomeRates.nonTaxable - incomeRates.highRateThreshold) *
+          incomeRates.highRate,
+      }
+
+      const lowTax = {
+        grossIncomeMultiple: 0,
+        sum: incomeRates.highRateThreshold * incomeRates.rate,
+      }
+
+      grossIncomeMultiple = highTax.grossIncomeMultiple + lowTax.grossIncomeMultiple
+      sum = highTax.sum + lowTax.sum - incomeRates.credit
+    }
+  }
+
+  return {
+    grossIncomeMultiple,
+    sum,
+  }
+}
+
+function getSocial(expenses: Expenses, socialRates: SocialInsuranceRates, options: Options = {}) {
+  const { isMinSocialBaseForced, isMaxSocialBaseForced } = options
+
+  let grossIncomeMultiple = 0
+  let sum
+
+  const profit = getVirtualProfit(expenses, options)
+
+  if (isMinSocialBaseForced) {
+    sum = socialRates.minBase * socialRates.rate
+  } else if (isMaxSocialBaseForced) {
+    sum = socialRates.maxBase * socialRates.rate
+  } else {
+    grossIncomeMultiple = profit.grossIncomeMultiple * socialRates.basePercentage * socialRates.rate
+    sum = profit.sum * socialRates.basePercentage * socialRates.rate
+  }
+
+  return {
+    grossIncomeMultiple,
+    sum,
+  }
+}
+
+function getHealth(expenses: Expenses, healthRates: HealthInsuranceRates, options: Options = {}) {
+  const { isMinHealthBaseForced } = options
+
+  let grossIncomeMultiple = 0
+  let sum
+
+  const profit = getVirtualProfit(expenses, options)
+
+  if (isMinHealthBaseForced) {
+    sum = healthRates.minBase * healthRates.rate
+  } else {
+    grossIncomeMultiple = profit.grossIncomeMultiple * healthRates.basePercentage * healthRates.rate
+    sum = profit.sum * healthRates.basePercentage * healthRates.rate
+  }
+
+  return {
+    grossIncomeMultiple,
+    sum,
+  }
 }
 
 /**
@@ -49,37 +202,22 @@ function estimateGrossIncome(
     return 0
   }
 
-  const {
-    isMinHealthBaseForced = false,
-    isMinSocialBaseForced = false,
-    isIncomeTaxZero = false,
-  } = options
-
   const { incomeRates, socialRates, healthRates } = rates
 
-  const top =
-    netIncome -
-    (isIncomeTaxZero ? 0 : incomeRates.nonTaxable * incomeRates.rate + incomeRates.credit) +
-    (isMinSocialBaseForced ? socialRates.minBase * socialRates.rate : 0) +
-    (isMinHealthBaseForced ? healthRates.minBase * healthRates.rate : 0)
+  const tax = getTax(expenses, incomeRates, options)
+  const profit = getRealProfit(expenses)
+  const social = getSocial(expenses, socialRates, options)
+  const health = getHealth(expenses, healthRates, options)
 
-  const ratesCombined =
-    (isIncomeTaxZero ? 0 : incomeRates.rate) +
-    (isMinSocialBaseForced ? 0 : socialRates.basePercentage * socialRates.rate) +
-    (isMinHealthBaseForced ? 0 : healthRates.basePercentage * healthRates.rate)
+  const top = netIncome - profit.sum + tax.sum + social.sum + health.sum
 
-  let result: number
+  const bottom =
+    profit.grossIncomeMultiple -
+    tax.grossIncomeMultiple -
+    social.grossIncomeMultiple -
+    health.grossIncomeMultiple
 
-  if ('percentage' in expenses) {
-    const percentage = expenses.percentage || 0
-    const bottom = 1 - (1 - percentage) * ratesCombined
-
-    result = top / bottom
-  } else {
-    const bottom = 1 - ratesCombined
-
-    result = top / bottom + expenses.amount
-  }
+  const result = Math.round(top / bottom)
 
   return Math.max(result, 0)
 }

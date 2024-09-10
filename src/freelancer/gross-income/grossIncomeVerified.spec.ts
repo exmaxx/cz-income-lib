@@ -2,10 +2,7 @@ import calculateGrossIncomeVerified from './grossIncomeVerified'
 import calculateNetIncome from '../net-income/netIncome'
 import { rates } from '../fixtures'
 import { Expenses } from '../types'
-
-describe('calculate gross income', () => {
-  const grossIncome = 1000000 // TODO: Try 10000000
-
+describe('low income', () => {
   it('returns 0 for a net income of 0', () => {
     expect(calculateGrossIncomeVerified(0, { percentage: 0.6 }, rates)).toEqual(0)
     expect(calculateGrossIncomeVerified(0, { amount: 500000 }, rates)).toEqual(0)
@@ -15,7 +12,12 @@ describe('calculate gross income', () => {
     expect(calculateGrossIncomeVerified(-1000, { percentage: 0.6 }, rates)).toEqual(0)
     expect(calculateGrossIncomeVerified(-1000, { amount: 500000 }, rates)).toEqual(0)
   })
+})
 
+describe.each([
+  // { grossIncome: 1000000, title: 'normal income' },
+  { grossIncome: 10000000, title: 'high income' },
+])('calculate gross income - $title', ({ grossIncome }) => {
   describe('expenses as flat-rate percentage', () => {
     it('calculates gross income from net income (40% rate)', () => {
       const expenses: Expenses = {
@@ -55,7 +57,7 @@ describe('calculate gross income', () => {
 
     it('works when minimal base for health insurance is reached', () => {
       const expenses: Expenses = {
-        amount: 700000,
+        amount: grossIncome - 300000,
       }
 
       const { netIncome, healthAssessmentBase } = calculateNetIncome(grossIncome, expenses, rates, {
@@ -71,7 +73,7 @@ describe('calculate gross income', () => {
 
     it('works when minimal base for social insurance is reached', () => {
       const expenses: Expenses = {
-        amount: 780000,
+        amount: grossIncome - 220000,
       }
 
       const { netIncome, socialAssessmentBase } = calculateNetIncome(grossIncome, expenses, rates, {
@@ -82,13 +84,12 @@ describe('calculate gross income', () => {
 
       const result = calculateGrossIncomeVerified(netIncome, expenses, rates)
 
-      // expect(isAlmostEqual(result, grossIncome)).toBe(true)
       expect(result).toEqual(grossIncome)
     })
 
     it('works when zero income tax is reached', () => {
       const expenses: Expenses = {
-        amount: 800000,
+        amount: grossIncome - 200000,
       }
 
       const { netIncome, incomeTax } = calculateNetIncome(grossIncome, expenses, rates, {

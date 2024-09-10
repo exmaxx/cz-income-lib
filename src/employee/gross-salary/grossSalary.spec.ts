@@ -1,7 +1,7 @@
 import { rates } from '../fixtures'
 import calculateGrossIncome from './grossSalary'
 
-describe('Employee - Gross Income', () => {
+describe('Employee - Gross Salary', () => {
   it('calculates gross income out of net salary and rates', () => {
     // Setup
     const netSalary = 911640

@@ -9,7 +9,7 @@ describe('calculator of net income and insurance', () => {
 
   describe('expenses as flat-rate', () => {
     const expenses: Expenses = {
-      percentage: 0.4, // 60%
+      percentage: 0.4, // 40%
     }
 
     it('calculates net income and other values', () => {

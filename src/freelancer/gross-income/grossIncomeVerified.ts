@@ -80,6 +80,39 @@ function calculateGrossIncomeVerified(netIncome: number, expenses: Expenses, rat
     return grossIncome
   }
 
+  grossIncome = estimateGrossIncome(netIncome, expenses, rates, {
+    isMaxSocialBaseForced: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  grossIncome = estimateGrossIncome(netIncome, expenses, rates, {
+    isMaxSocialBaseForced: true,
+    isHighRateIncomeTaxForced: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  grossIncome = estimateGrossIncome(netIncome, expenses, rates, {
+    isMaxSocialBaseForced: true,
+    isHighRateIncomeTaxForced: true,
+    isMaxFlatRateForced: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
   const lowestTaxAndInsurance = verification.social + verification.health // tax is already 0, social and health base is at minimum
 
   if ('amount' in expenses) {
