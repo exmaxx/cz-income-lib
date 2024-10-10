@@ -7,6 +7,10 @@ export interface IncomeRates {
   credit: number
   /** "odecitatelna polozka", value subtracted from the income tax base, i.e. amount that is not taxed */
   nonTaxable: number
+  /** The higher income tax rate */
+  highRate: number
+  /** The threshold for the higher income tax rate */
+  highRateThreshold: number
 }
 
 /**

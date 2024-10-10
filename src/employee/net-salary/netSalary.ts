@@ -5,6 +5,7 @@ import {
   Rates,
   SocialInsuranceRates,
 } from '../types'
+import { Thresholds } from '../constants'
 
 interface NetSalaryResults {
   /** The health insurance contributions for the employee and employer */
@@ -19,9 +20,11 @@ interface NetSalaryResults {
   netSalary: number
   /** The social insurance contributions for the employee and employer */
   social: { employee: number; employer: number }
+  /** The thresholds that were reached during the calculation */
+  reachedThresholds: string[]
 }
 
-function calculateRate(
+function calculateAmount(
   amount: number,
   rate: number,
   { isRoundingEnabled }: NetIncomeCalculationOptions
@@ -34,28 +37,36 @@ function calculateRate(
  *
  * Important: When the salary is higher than the high rate threshold, the high rate is applied.
  *
- * @param incomeRates - The tax rates
  * @param salary - Yearly salary
+ * @param incomeRates - The tax rates
  * @param options - Options for the calculation
  */
 function calculateIncomeTax(
-  incomeRates: IncomeRates,
   salary: number,
+  incomeRates: IncomeRates,
   options: NetIncomeCalculationOptions
 ) {
   const { highRateThreshold, rate, highRate } = incomeRates
 
-  let incomeTaxNormalRate = calculateRate(salary, rate, options)
+  const reachedThresholds: string[] = []
+
+  let incomeTaxNormalRate = calculateAmount(salary, rate, options)
   let incomeTaxHighRate = 0
 
   if (salary > highRateThreshold) {
-    incomeTaxNormalRate = calculateRate(highRateThreshold, rate, options)
-    incomeTaxHighRate = calculateRate(salary - highRateThreshold, highRate, options)
+    incomeTaxNormalRate = calculateAmount(highRateThreshold, rate, options)
+    incomeTaxHighRate = calculateAmount(salary - highRateThreshold, highRate, options)
+
+    reachedThresholds.push(Thresholds.HIGH_TAX)
   }
 
   const incomeTax = Math.max(incomeTaxNormalRate + incomeTaxHighRate - incomeRates.credit, 0)
 
-  return { incomeTaxNormalRate, incomeTaxHighRate, incomeTax }
+  if (incomeTax === 0) {
+    reachedThresholds.push(Thresholds.ZERO_TAX)
+  }
+
+  return { incomeTaxNormalRate, incomeTaxHighRate, incomeTax, reachedThresholds }
 }
 
 /**
@@ -74,9 +85,18 @@ function calculateSocial(
 ) {
   const socialBaseEmployee = Math.min(salary, maxBase)
 
+  const reachedThresholds: string[] = []
+
+  if (socialBaseEmployee === maxBase) {
+    reachedThresholds.push(Thresholds.MAX_BASE_SOCIAL)
+  }
+
   return {
-    employee: calculateRate(socialBaseEmployee, employeeRate, options),
-    employer: calculateRate(salary, employerRate, options),
+    social: {
+      employee: calculateAmount(socialBaseEmployee, employeeRate, options),
+      employer: calculateAmount(salary, employerRate, options),
+    },
+    reachedThresholds,
   }
 }
 
@@ -96,17 +116,21 @@ function calculateHealth(
   options: NetIncomeCalculationOptions
 ) {
   const health = {
-    employee: calculateRate(salary, employeeRate, options),
-    employer: calculateRate(salary, employerRate, options),
+    employee: calculateAmount(salary, employeeRate, options),
+    employer: calculateAmount(salary, employerRate, options),
   }
 
   const healthTotal = health.employee + health.employer
 
+  const reachedThresholds: string[] = []
+
   if (healthTotal < minAmount) {
     health.employee = minAmount - health.employer
+
+    reachedThresholds.push(Thresholds.MIN_HEALTH)
   }
 
-  return health
+  return { health, reachedThresholds }
 }
 
 /**
@@ -123,18 +147,36 @@ function calculateNetSalary(
 ): NetSalaryResults {
   const { incomeRates, socialRates, healthRates } = rates
 
-  const { incomeTaxNormalRate, incomeTaxHighRate, incomeTax } = calculateIncomeTax(
-    incomeRates,
+  const {
+    incomeTaxNormalRate,
+    incomeTaxHighRate,
+    incomeTax,
+    reachedThresholds: salaryThresholds,
+  } = calculateIncomeTax(salary, incomeRates, options)
+
+  const { social, reachedThresholds: socialThresholds } = calculateSocial(
     salary,
+    socialRates,
     options
   )
 
-  const social = calculateSocial(salary, socialRates, options)
-  const health = calculateHealth(salary, healthRates, options)
+  const { health, reachedThresholds: healthThresholds } = calculateHealth(
+    salary,
+    healthRates,
+    options
+  )
 
   const netSalary = salary - incomeTax - social.employee - health.employee
 
-  return { incomeTax, incomeTaxNormalRate, incomeTaxHighRate, social, health, netSalary }
+  return {
+    incomeTax,
+    incomeTaxNormalRate,
+    incomeTaxHighRate,
+    social,
+    health,
+    netSalary,
+    reachedThresholds: [...salaryThresholds, ...socialThresholds, ...healthThresholds],
+  }
 }
 
 export default calculateNetSalary

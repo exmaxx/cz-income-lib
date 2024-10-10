@@ -25,7 +25,7 @@ export interface HealthInsuranceRates {
   employeeRate: number
   /** Health insurance rate for the employer */
   employerRate: number
-  /** The minimum base for health insurance contributions */
+  /** The minimum health insurance contributions */
   minAmount: number
 }
 

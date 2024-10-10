@@ -37,7 +37,6 @@ describe('calculate gross income', () => {
       })
 
       const result = estimateGrossIncome(netIncome, expenses, rates, {
-        // const result = estimateGrossIncome(210000, expenses, rates, {
         isMinHealthBaseForced: true,
       })
 
@@ -75,7 +74,6 @@ describe('calculate gross income', () => {
         isIncomeTaxZero: true,
       })
 
-      // expect(result, grossIncome)).toBe(true)
       expect(result).toEqual(grossIncome)
     })
 
