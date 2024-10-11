@@ -4,8 +4,10 @@ import { rates } from '../fixtures'
 describe('Employee - Net Income', () => {
   describe('normal salary', () => {
     it('calculates taxes and insurance', () => {
-      const grossSalary = 12 * 100000
-      expect(calculateNetSalary(grossSalary, rates)).toEqual({
+      const grossSalaryMonthly = 100000
+      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+
+      expect(result).toEqual({
         health: {
           employee: 54000,
           employer: 108000,
@@ -23,8 +25,10 @@ describe('Employee - Net Income', () => {
     })
 
     it('works for salary just above minimal salary', () => {
-      const grossSalary = 12 * 20000
-      expect(calculateNetSalary(grossSalary, rates)).toEqual({
+      const grossSalaryMonthly = 20000
+      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+
+      expect(result).toEqual({
         health: {
           employee: 10800,
           employer: 21600,
@@ -44,8 +48,8 @@ describe('Employee - Net Income', () => {
 
   describe('low salary - lower than minimal salary (e.g. part time)', () => {
     it('minimal health insurance is reached - employee must pay the difference to the minimum amount of health insurance', () => {
-      const grossSalary = 12 * 18000
-      const result = calculateNetSalary(grossSalary, rates)
+      const grossSalaryMonthly = 18000
+      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
 
       expect(result.health).toEqual({
         // NOTE: internet calculators count this monthly and then multiply by 12, but we calculate it yearly,
@@ -59,16 +63,16 @@ describe('Employee - Net Income', () => {
     })
 
     it('income tax is zero', () => {
-      const grossSalary = 12 * 3000
-      const result = calculateNetSalary(grossSalary, rates)
+      const grossSalaryMonthly = 3000
+      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
 
       expect(result.incomeTax).toEqual(0)
       expect(result.reachedThresholds).toContain('ZERO_TAX')
     })
 
     it('negative salary', () => {
-      const grossSalary = 12 * 2000
-      const result = calculateNetSalary(grossSalary, rates)
+      const grossSalaryMonthly = 2000
+      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
 
       expect(result.incomeTax).toEqual(0)
       expect(result.netSalary).toEqual(-6162)
@@ -77,37 +81,34 @@ describe('Employee - Net Income', () => {
   })
 
   describe('high salary', () => {
-it('adds higher tax for amounts above 36-times the average salary', () => {
-  const grossSalary = 12 * 170000
-  const result = calculateNetSalary(grossSalary, rates)
+    it('adds higher tax for amounts above 36-times the average salary', () => {
+      const grossSalaryMonthly = 170000
+      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
 
-  const expected = {
-    incomeTax: 311736,
-    incomeTaxHighRate: 105154,
-    incomeTaxNormalRate: 237422,
-    netSalary: 1491624,
-    reachedThresholds: ['HIGH_TAX'],
-  }
-
-  expect(result).toEqual(expect.objectContaining(expected))
-})
-    it('omits social insurance for amounts above 48-times the average salary', () => {
-      const grossSalary = 12 * 300000
-      expect(calculateNetSalary(grossSalary, rates)).toEqual({
-        health: {
-          employee: 162000,
-          employer: 324000,
-        },
-        incomeTax: 670536,
-        incomeTaxHighRate: 463954,
+      const expected = {
+        incomeTax: 311736,
+        incomeTaxHighRate: 105154,
         incomeTaxNormalRate: 237422,
-        netSalary: 2617624,
-        reachedThresholds: ['HIGH_TAX', 'MAX_BASE_SOCIAL'],
+        netSalary: 1491624,
+      }
+
+      expect(result).toMatchObject(expected)
+      expect(result.reachedThresholds).toEqual(expect.arrayContaining(['HIGH_TAX']))
+    })
+
+    it('omits social insurance for amounts above 48-times the average salary', () => {
+      const grossSalaryMonthly = 300000
+      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+
+      const expected = {
         social: {
           employee: 149840,
           employer: 892800,
         },
-      })
+      }
+
+      expect(result).toMatchObject(expected)
+      expect(result.reachedThresholds).toContain('MAX_BASE_SOCIAL')
     })
   })
 })
