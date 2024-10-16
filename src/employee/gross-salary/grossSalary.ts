@@ -1,101 +1,64 @@
-import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
+import calculateGrossSalaryWithRules from './grossSalaryWithRules'
+import calculateNetSalary from '../net-salary/netSalary'
+import { AVG_SALARY_MONTHLY } from '../constants'
+import { Rates } from '../types'
 
-interface Options {
-  /** When true, the minimal health insurance is covered by the employee */
-  isMinHealthForced?: boolean
-  /** When true, the tax is zero */
-  isTaxZero?: boolean
-  /** When true, we reached the higher tax rate */
-  isTaxHighRate?: boolean
-  /** When true, we reached the maximal social insurance limit */
-  isSocialMaxBase?: boolean
-}
+function calculateGrossSalary(netSalary: number, rates: Rates): number {
+  let grossSalary = calculateGrossSalaryWithRules(netSalary, rates)
+  let verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-function getTaxRates(incomeRates: IncomeRates, options: Options) {
-  const { isTaxHighRate, isTaxZero } = options
+  if (verification.netSalary === netSalary) {
+    return grossSalary
+  }
 
-  if (isTaxZero) {
-    return 0
-  } else if (isTaxHighRate) {
-    return incomeRates.highRate
+  const avgSalaryYearly = AVG_SALARY_MONTHLY * 12
+
+  if (netSalary < avgSalaryYearly) {
+    grossSalary = calculateGrossSalaryWithRules(netSalary, rates, {
+      isMinHealthUsed: true,
+    })
+
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
+
+    if (verification.netSalary === netSalary) {
+      return grossSalary
+    }
+
+    grossSalary = calculateGrossSalaryWithRules(netSalary, rates, {
+      isMinHealthUsed: true,
+      isTaxZero: true,
+    })
+
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
+
+    if (verification.netSalary === netSalary) {
+      // in the edge case, for larger negative net income, the gross salary can be negative -> we return 0 instead
+      return Math.max(grossSalary, 0)
+    }
   } else {
-    return incomeRates.rate
-  }
-}
+    grossSalary = calculateGrossSalaryWithRules(netSalary, rates, {
+      isTaxHighRate: true,
+    })
 
-function getHealthRates(healthRates: HealthInsuranceRates, options: Options) {
-  const { isMinHealthForced } = options
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-  let employeeRate = healthRates.employeeRate
-  let employerRate = 0
+    if (verification.netSalary === netSalary) {
+      return grossSalary
+    }
 
-  if (isMinHealthForced) {
-    employeeRate = 0
-    employerRate = healthRates.employerRate
-  }
+    grossSalary = calculateGrossSalaryWithRules(netSalary, rates, {
+      isTaxHighRate: true,
+      isSocialMaxBase: true,
+    })
 
-  return employeeRate - employerRate
-}
+    verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-function getSocialRates(socialRates: SocialInsuranceRates, options: Options) {
-  const { isSocialMaxBase } = options
-
-  return isSocialMaxBase ? 0 : socialRates.employeeRate
-}
-
-function getRatesCombined(rates: Rates, options: Options) {
-  const { incomeRates, socialRates, healthRates } = rates
-
-  return (
-    getTaxRates(incomeRates, options) +
-    getSocialRates(socialRates, options) +
-    getHealthRates(healthRates, options)
-  )
-}
-
-function getTaxAdjustments(
-  options: Options,
-  incomeRates: IncomeRates
-) {
-  const { highRateThreshold } = incomeRates
-  let tax = 0
-
-  if (options.isTaxHighRate) {
-    tax =
-      highRateThreshold * incomeRates.highRate - highRateThreshold * incomeRates.rate
+    if (verification.netSalary === netSalary) {
+      return grossSalary
+    }
   }
 
-  if (!options.isTaxZero) {
-    tax += incomeRates.credit
-  }
-
-  return tax
+  return 0
 }
 
-function getHealthAdjustments(options: Options, healthRates: HealthInsuranceRates) {
-  return options.isMinHealthForced ? healthRates.minAmount : 0
-}
-
-function getSocialAdjustments(options: Options, socialRates: SocialInsuranceRates) {
-  const { maxBase } = socialRates
-
-  return options.isSocialMaxBase ? maxBase * socialRates.employeeRate : 0
-}
-
-function calculateGrossIncome(netSalary: number, rates: Rates, options: Options = {}) {
-  const { incomeRates, socialRates, healthRates } = rates
-
-  const top =
-    netSalary -
-    getTaxAdjustments(options, incomeRates) +
-    getHealthAdjustments(options, healthRates) +
-    getSocialAdjustments(options, socialRates)
-
-  const bottom = 1 - getRatesCombined(rates, options)
-
-  const grossSalary = top / bottom
-
-  return Math.round(grossSalary)
-}
-
-export default calculateGrossIncome
+export default calculateGrossSalary

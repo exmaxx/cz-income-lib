@@ -1,225 +1,139 @@
-import { Expenses, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
-import { MAX_FLAT_RATE_AMOUNT } from '../constants'
-
-type HighIncomeOptions = {
-  isHighRateIncomeTaxForced?: boolean
-  isIncomeTaxZero?: never
-  isMaxFlatRateForced?: boolean
-  isMaxSocialBaseForced?: boolean
-  isMinHealthBaseForced?: never
-  isMinSocialBaseForced?: never
-}
-
-type LowIncomeOptions = {
-  isHighRateIncomeTaxForced?: never
-  isIncomeTaxZero?: boolean
-  isMaxFlatRateForced?: never
-  isMaxSocialBaseForced?: never
-  isMinHealthBaseForced?: boolean
-  isMinSocialBaseForced?: boolean
-}
+import calculateGrossIncomeWithRules from './grossIncomeWithRules'
+import calculateNetIncome from '../net-income/netIncome'
+import { Expenses, Rates } from '../types'
 
 /**
- * Options for the gross income estimation.
+ * Calculates the gross income from the net income, expenses, and applicable rates doing multiple
+ * rounds of calculations if necessary.
  *
- * Some options are mutually exclusive. You either aim for low income or high income and use corresponding options.
- */
-type Options = HighIncomeOptions | LowIncomeOptions
-
-/**
- * Calculates the real profit from the expenses. In case of flat-rate percentage expenses, the real profit
- * is the whole gross income.
+ * # Multiple rounds of calculations
  *
- * @param expenses
- */
-function getRealProfit(expenses: Expenses) {
-  const { amount } = expenses
-
-  let grossIncomeMultiple = 1
-  let sum = 0
-
-  if (amount) {
-    sum = -amount
-  }
-
-  return {
-    grossIncomeMultiple,
-    sum,
-  }
-}
-
-/**
- * A profit that is used within other calculations. It takes into account either a fixed amount expenses
- * or a flat-rate percentage.
+ * The calculation of the gross income from the net income is not automatically reversible because within
+ * the net income calculation there are several thresholds that can be reached:
+ * - minimal health insurance base
+ * - minimal social insurance base
+ * - zero income tax
  *
- * @param expenses
- * @param isMaxFlatRateForced
- */
-function getVirtualProfit(expenses: Expenses, { isMaxFlatRateForced }: Options = {}) {
-  const { amount, percentage } = expenses
-
-  let grossIncomeMultiplier = 1
-  let sum = 0
-
-  if (percentage) {
-    if (isMaxFlatRateForced) {
-      sum = -MAX_FLAT_RATE_AMOUNT * percentage
-    } else {
-      grossIncomeMultiplier = 1 - percentage
-    }
-  } else if (amount) {
-    sum = -amount
-  }
-
-  return {
-    grossIncomeMultiple: grossIncomeMultiplier,
-    sum,
-  }
-}
-
-function getTax(expenses: Expenses, incomeRates: IncomeRates, options: Options = {}) {
-  const { isIncomeTaxZero, isHighRateIncomeTaxForced } = options
-
-  let grossIncomeMultiple = 0
-  let sum = 0
-
-  const profit = getVirtualProfit(expenses, options)
-
-  if (!isIncomeTaxZero) {
-    grossIncomeMultiple = profit.grossIncomeMultiple * incomeRates.rate
-
-    sum =
-      profit.sum * incomeRates.rate - incomeRates.nonTaxable * incomeRates.rate - incomeRates.credit
-
-    if (isHighRateIncomeTaxForced) {
-      const highTax = {
-        grossIncomeMultiple: profit.grossIncomeMultiple * incomeRates.highRate,
-        sum:
-          (profit.sum - incomeRates.nonTaxable - incomeRates.highRateThreshold) *
-          incomeRates.highRate,
-      }
-
-      const lowTax = {
-        grossIncomeMultiple: 0,
-        sum: incomeRates.highRateThreshold * incomeRates.rate,
-      }
-
-      grossIncomeMultiple = highTax.grossIncomeMultiple + lowTax.grossIncomeMultiple
-      sum = highTax.sum + lowTax.sum - incomeRates.credit
-    }
-  }
-
-  return {
-    grossIncomeMultiple,
-    sum,
-  }
-}
-
-function getSocial(expenses: Expenses, socialRates: SocialInsuranceRates, options: Options = {}) {
-  const { isMinSocialBaseForced, isMaxSocialBaseForced } = options
-
-  let grossIncomeMultiple = 0
-  let sum
-
-  const profit = getVirtualProfit(expenses, options)
-
-  if (isMinSocialBaseForced) {
-    sum = socialRates.minBase * socialRates.rate
-  } else if (isMaxSocialBaseForced) {
-    sum = socialRates.maxBase * socialRates.rate
-  } else {
-    grossIncomeMultiple = profit.grossIncomeMultiple * socialRates.basePercentage * socialRates.rate
-    sum = profit.sum * socialRates.basePercentage * socialRates.rate
-  }
-
-  return {
-    grossIncomeMultiple,
-    sum,
-  }
-}
-
-function getHealth(expenses: Expenses, healthRates: HealthInsuranceRates, options: Options = {}) {
-  const { isMinHealthBaseForced } = options
-
-  let grossIncomeMultiple = 0
-  let sum
-
-  const profit = getVirtualProfit(expenses, options)
-
-  if (isMinHealthBaseForced) {
-    sum = healthRates.minBase * healthRates.rate
-  } else {
-    grossIncomeMultiple = profit.grossIncomeMultiple * healthRates.basePercentage * healthRates.rate
-    sum = profit.sum * healthRates.basePercentage * healthRates.rate
-  }
-
-  return {
-    grossIncomeMultiple,
-    sum,
-  }
-}
-
-/**
- * Calculates the gross income from the net income, expenses, and applicable rates. However,
- * the calculation might be off from the real gross income when proper thresholds options are not applied.
+ * The thresholds can be applied to different numbers making the result the same and the original number
+ * impossible to determine:
  *
- * # Expense types
+ * > E.g. zero income tax can be reached with 15000 CZK profit, as well as 20000 CZK (because we subtract
+ * > 30840 CZK credit). So we have 0 tax but do not know the original profit.
  *
- * The formula differs slightly based on the type of expenses:
- *  - flat-rate percentage (e.g. 60%)
- *  - or real amount (e.g. 500000 CZK)
+ * Therefore, we try the gross income calculation with different thresholds taken into account and verify
+ * if the result is the same as the original net income.
  *
- * # Threshold options
+ * The order of the thresholds is clear because of their values. The minimal health insurance base is the highest,
+ * then the minimal social insurance base, and then the zero income tax.
  *
- * The calculation takes into account that the net income might have been calculated reaching:
- *  - minimal health insurance base
- *  - minimal social insurance base
- *  - zero income tax
+ * # Rounding
  *
- * This happens when the profit was too low (either original gross income was too low or the expenses were too high).
- *
- * ## How to use the options
- *
- * The developer must decide which options to use based on the original net income calculation.
- *
- * You can verify the options by running the net income calculation after this function. When you see that
- * the result returned e.g. the minimal health insurance base, you should use the `isMinHealthBaseForced` option.
+ * For the calculation to work, the rounding must be disabled. Otherwise, the verification
+ * checks would fail. Especially the rounding to hundreds in social were causing the issues.
  *
  * @param netIncome - The income after taxes and insurance contributions
  * @param expenses - Either a fixed amount or a flat-rate percentage
  * @param rates - The rates for income tax, social insurance, and health insurance
- * @param options - Use the options when you know that the net income was calculated with some thresholds
- *
- * @returns The gross income (zero if negative)
  */
-function estimateGrossIncome(
-  netIncome: number,
-  expenses: Expenses,
-  rates: Rates,
-  options: Options = {}
-): number {
+function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rates): number {
   if (netIncome <= 0) {
     return 0
   }
 
-  const { incomeRates, socialRates, healthRates } = rates
+  let grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates)
+  let verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  const tax = getTax(expenses, incomeRates, options)
-  const profit = getRealProfit(expenses)
-  const social = getSocial(expenses, socialRates, options)
-  const health = getHealth(expenses, healthRates, options)
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
 
-  const top = netIncome - profit.sum + tax.sum + social.sum + health.sum
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isMinHealthBaseUsed: true,
+  })
 
-  const bottom =
-    profit.grossIncomeMultiple -
-    tax.grossIncomeMultiple -
-    social.grossIncomeMultiple -
-    health.grossIncomeMultiple
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  const result = Math.round(top / bottom)
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
 
-  return Math.max(result, 0)
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isMinHealthBaseUsed: true,
+    isMinSocialBaseUsed: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isMinHealthBaseUsed: true,
+    isMinSocialBaseUsed: true,
+    isIncomeTaxZero: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isMaxSocialBaseUsed: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isMaxSocialBaseUsed: true,
+    isHighRateIncomeTaxUsed: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isMaxSocialBaseUsed: true,
+    isHighRateIncomeTaxUsed: true,
+    isMaxFlatRateUsed: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  const lowestTaxAndInsurance = verification.social + verification.health // tax is already 0, social and health base is at minimum
+
+  if ('amount' in expenses) {
+    const amount = expenses.amount || 0
+
+    // we are at the state where `expenses.amount + lowestTaxAndInsurance` together mean 0 net income
+    // so to get the real gross income we need to add the original `netIncome`
+    grossIncome = amount + lowestTaxAndInsurance + netIncome
+  } else {
+    throw new Error(
+      'Unable to calculate gross income (flat-rate calculation should have not reached this point)'
+    )
+  }
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (verification.netIncome === netIncome) {
+    return grossIncome
+  }
+
+  throw new Error('Unable to calculate gross income (all approximations failed)')
 }
 
-export default estimateGrossIncome
+export default calculateGrossIncome

@@ -23,7 +23,7 @@ describe('calculator of net income and insurance', () => {
         netIncome: 812740,
         social: 87600,
         socialAssessmentBase: 300000,
-        thresholds: [],
+        reachedThresholds: [],
       })
     })
 
@@ -38,14 +38,14 @@ describe('calculator of net income and insurance', () => {
 
       const expectedIncomeTax = Math.ceil(lowTaxAmount * rate + highTaxAmount * highRate - credit)
 
-      const { incomeTax, incomeTaxWithLowRate, incomeTaxWithHighRate, thresholds } =
+      const { incomeTax, incomeTaxWithLowRate, incomeTaxWithHighRate, reachedThresholds } =
         calculateNetIncome(highIncome, expenses, rates)
 
       expect(incomeTax).toEqual(expectedIncomeTax)
       expect(incomeTaxWithLowRate).toEqual(lowTaxAmount * rate)
       expect(incomeTaxWithHighRate).toEqual(highTaxAmount * highRate)
 
-      expect(thresholds).toEqual(
+      expect(reachedThresholds).toEqual(
         expect.arrayContaining(['MAX_FLAT_RATE', 'HIGH_TAX', 'MAX_BASE_SOCIAL'])
       )
     })
@@ -67,9 +67,9 @@ describe('calculator of net income and insurance', () => {
         incomeTaxWithHighRate: 0,
         incomeTaxWithLowRate: 75000,
         netIncome: 349090,
+        reachedThresholds: [],
         social: 73000,
         socialAssessmentBase: 250000,
-        thresholds: [],
       })
     })
 
@@ -78,10 +78,10 @@ describe('calculator of net income and insurance', () => {
         amount: 800000,
       }
 
-      const { incomeTax, thresholds } = calculateNetIncome(income, expenses, rates)
+      const { incomeTax, reachedThresholds } = calculateNetIncome(income, expenses, rates)
 
       expect(incomeTax).toEqual(0)
-      expect(thresholds).toContain('ZERO_TAX')
+      expect(reachedThresholds).toContain('ZERO_TAX')
     })
 
     it('sets social assessment base to minimum if below threshold', () => {
@@ -89,10 +89,14 @@ describe('calculator of net income and insurance', () => {
         amount: 900000,
       }
 
-      const { socialAssessmentBase, thresholds } = calculateNetIncome(income, expenses, rates)
+      const { socialAssessmentBase, reachedThresholds } = calculateNetIncome(
+        income,
+        expenses,
+        rates
+      )
 
       expect(socialAssessmentBase).toEqual(rates.socialRates.minBase)
-      expect(thresholds).toContain('MIN_BASE_SOCIAL')
+      expect(reachedThresholds).toContain('MIN_BASE_SOCIAL')
     })
 
     // same for social max base
@@ -101,10 +105,14 @@ describe('calculator of net income and insurance', () => {
         amount: 0,
       }
 
-      const { socialAssessmentBase, thresholds } = calculateNetIncome(4000000, expenses, rates)
+      const { socialAssessmentBase, reachedThresholds } = calculateNetIncome(
+        4000000,
+        expenses,
+        rates
+      )
 
       expect(socialAssessmentBase).toEqual(rates.socialRates.maxBase)
-      expect(thresholds).toContain('MAX_BASE_SOCIAL')
+      expect(reachedThresholds).toContain('MAX_BASE_SOCIAL')
     })
 
     it('sets health assessment base to minimum if below threshold', () => {
@@ -112,10 +120,14 @@ describe('calculator of net income and insurance', () => {
         amount: 900000,
       }
 
-      const { healthAssessmentBase, thresholds } = calculateNetIncome(income, expenses, rates)
+      const { healthAssessmentBase, reachedThresholds } = calculateNetIncome(
+        income,
+        expenses,
+        rates
+      )
 
       expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
-      expect(thresholds).toContain('MIN_BASE_HEALTH')
+      expect(reachedThresholds).toContain('MIN_BASE_HEALTH')
     })
 
     it('works with higher tax rate for high income', () => {
@@ -131,14 +143,14 @@ describe('calculator of net income and insurance', () => {
 
       const expectedIncomeTax = Math.ceil(lowTaxAmount * rate + highTaxAmount * highRate - credit)
 
-      const { incomeTax, incomeTaxWithLowRate, incomeTaxWithHighRate, thresholds } =
+      const { incomeTax, incomeTaxWithLowRate, incomeTaxWithHighRate, reachedThresholds } =
         calculateNetIncome(highIncome, expenses, rates)
 
       expect(incomeTax).toEqual(expectedIncomeTax)
       expect(incomeTaxWithLowRate).toEqual(lowTaxAmount * rate)
       expect(incomeTaxWithHighRate).toEqual(highTaxAmount * highRate)
 
-      expect(thresholds).toEqual(expect.arrayContaining(['HIGH_TAX', 'MAX_BASE_SOCIAL']))
+      expect(reachedThresholds).toEqual(expect.arrayContaining(['HIGH_TAX', 'MAX_BASE_SOCIAL']))
     })
   })
 })

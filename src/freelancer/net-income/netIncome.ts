@@ -130,9 +130,9 @@ function calculateSocial(
   const social = socialAssessmentBase * socialRates.rate
 
   return {
-    socialAssessmentBase,
-    social: isRoundingEnabled ? Math.ceil(social) : social,
     reachedThresholds,
+    social: isRoundingEnabled ? Math.ceil(social) : social,
+    socialAssessmentBase,
   }
 }
 
@@ -227,14 +227,14 @@ function calculateNetIncome(
     incomeTaxWithHighRate,
     incomeTaxWithLowRate,
     netIncome,
-    social,
-    socialAssessmentBase,
-    thresholds: [
+    reachedThresholds: [
       ...thresholdsTaxBase,
       ...thresholdsIncomeTax,
       ...thresholdsSocial,
       ...thresholdsHealth,
     ],
+    social,
+    socialAssessmentBase,
   }
 }
 

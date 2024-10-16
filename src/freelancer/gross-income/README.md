@@ -9,6 +9,8 @@ the net income calculation, so we need to **iterate the formula** with each boun
 
 ## Formula
 
+> **WARNING**: Out of date! Needs fix.
+
 We start with the net income formula and do several equation operations to get the gross income formula.
 
 The income formula:
@@ -27,15 +29,15 @@ And after the rearrangement:
 
 1. for flat-rate percentage expenses:
 
-> $$
-gross = \frac{net - taxRate * nontaxable - credit}{1 - ((1 - expensesRate) * (taxRate + assessmentRate * (socialRate + healthRate))}
-$$
+    > $$
+    gross = \frac{net - taxRate * nontaxable - credit}{1 - ((1 - expensesRate) * (taxRate + assessmentRate * (socialRate + healthRate))}
+    $$
 
 2. for fixed expenses:
 
-> $$
-gross = \frac{net - taxRate * nontaxable - credit}{1 - (taxRate + assessmentRate * (socialRate + healthRate))} + expenses
-$$
+    > $$
+    gross = \frac{net - taxRate * nontaxable - credit}{1 - (taxRate + assessmentRate * (socialRate + healthRate))} + expenses
+    $$
 
 You see that the formula looks quite complex.
 
@@ -48,14 +50,16 @@ We can simplify the formula by introducing the combined rates:
 And then the formula becomes:
 
 1. for flat-rate percentage expenses:
-> $$
-gross = \frac{net - taxRate * nontaxable - credit} {1 - (1 - expensesRate) * ratesCombined}
-$$
+
+    > $$
+    gross = \frac{net - taxRate * nontaxable - credit} {1 - (1 - expensesRate) * ratesCombined}
+    $$
 
 2. for fixed expenses:
-> $$
-gross = \frac{net - taxRate * nontaxable - credit}{1 - ratesCombined} + expenses
-$$
+
+    > $$
+    gross = \frac{net - taxRate * nontaxable - credit}{1 - ratesCombined} + expenses
+    $$
 
 ## Dealing with boundary conditions
 
@@ -83,6 +87,6 @@ We use the top of the fraction as `top` variable and the bottom as `bottom` vari
 variable for the sum of the rates.
 
 The boundary conditions are applied by boolean flags:
-- `isMinHealthBaseForced`
-- `isMinSocialBaseForced`
+- `isMinHealthBaseUsed`
+- `isMinSocialBaseUsed`
 - `isIncomeTaxZero`
