@@ -1,7 +1,8 @@
 import calculateGrossIncome from './grossIncome'
 import calculateNetIncome from '../net-income/netIncome'
 import { rates } from '../fixtures'
-import { Expenses } from '../types'
+import { Expenses, Rates } from '../types'
+
 describe('low income', () => {
   it('returns 0 for a net income of 0', () => {
     expect(calculateGrossIncome(0, { percentage: 0.6 }, rates)).toEqual(0)
@@ -15,7 +16,7 @@ describe('low income', () => {
 })
 
 describe.each([
-  // { grossIncome: 1000000, title: 'normal income' },
+  { grossIncome: 1000000, title: 'medium income' },
   { grossIncome: 10000000, title: 'high income' },
 ])('calculate gross income - $title', ({ grossIncome }) => {
   describe('expenses as flat-rate percentage', () => {
@@ -41,6 +42,27 @@ describe.each([
       })
 
       expect(calculateGrossIncome(netIncome, expenses, rates)).toBeCloseTo(grossIncome, 5)
+    })
+
+    it('finishes for integer net income', () => {
+      const expenses: Expenses = {
+        percentage: 0.6,
+      }
+
+      // medium income
+      for (let netIncomeIterated = 1200000; netIncomeIterated < 1200005; netIncomeIterated++) {
+        expect(() => calculateGrossIncome(netIncomeIterated, expenses, rates)).not.toThrow()
+      }
+
+      // high income
+      for (let netIncomeIterated = 8000000; netIncomeIterated < 8000005; netIncomeIterated++) {
+        expect(() => calculateGrossIncome(netIncomeIterated, expenses, rates)).not.toThrow()
+      }
+
+      // low income
+      for (let netIncomeIterated = 300000; netIncomeIterated < 300005; netIncomeIterated++) {
+        expect(() => calculateGrossIncome(netIncomeIterated, expenses, rates)).not.toThrow()
+      }
     })
   })
 
@@ -100,7 +122,6 @@ describe.each([
 
       const result = calculateGrossIncome(netIncome, expenses, rates)
 
-      // expect(isAlmostEqual(result, grossIncome)).toBe(true)
       expect(result).toEqual(grossIncome)
     })
 
@@ -118,6 +139,29 @@ describe.each([
       }
 
       expect(() => calculateGrossIncome(349090, { amount: 500000 }, incorrectRates)).toThrow()
+    })
+
+    it('finishes for integer net income', () => {
+      // medium income
+      for (let netIncomeIterated = 1200000; netIncomeIterated < 1200005; netIncomeIterated++) {
+        expect(() =>
+          calculateGrossIncome(netIncomeIterated, { amount: 500000 }, rates)
+        ).not.toThrow()
+      }
+
+      // high income
+      for (let netIncomeIterated = 8000000; netIncomeIterated < 8000005; netIncomeIterated++) {
+        expect(() =>
+          calculateGrossIncome(netIncomeIterated, { amount: 3000000 }, rates)
+        ).not.toThrow()
+      }
+
+      // low income
+      for (let netIncomeIterated = 300000; netIncomeIterated < 300005; netIncomeIterated++) {
+        expect(() =>
+          calculateGrossIncome(netIncomeIterated, { amount: 100000 }, rates)
+        ).not.toThrow()
+      }
     })
   })
 })

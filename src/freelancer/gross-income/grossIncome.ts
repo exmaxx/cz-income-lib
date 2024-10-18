@@ -1,6 +1,7 @@
 import calculateGrossIncomeWithRules from './grossIncomeWithRules'
 import calculateNetIncome from '../net-income/netIncome'
 import { Expenses, Rates } from '../types'
+import { isAlmostEqual } from '../../utils'
 
 /**
  * Calculates the gross income from the net income, expenses, and applicable rates doing multiple
@@ -43,9 +44,11 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
   let grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates)
   let verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
+
+  // TODO: Can we do a check to know whether to go the low or high income path?
 
   grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
     isMinHealthBaseUsed: true,
@@ -53,7 +56,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
 
@@ -64,7 +67,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
 
@@ -76,7 +79,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
 
@@ -86,7 +89,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
 
@@ -97,7 +100,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
 
@@ -109,7 +112,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
 
@@ -129,7 +132,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
-  if (verification.netIncome === netIncome) {
+  if (isAlmostEqual(verification.netIncome, netIncome)) {
     return grossIncome
   }
 

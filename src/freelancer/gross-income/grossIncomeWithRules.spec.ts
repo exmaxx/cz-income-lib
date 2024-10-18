@@ -7,7 +7,7 @@ describe('estimates gross income from net income', () => {
   const highIncome = 10000000
 
   describe('expenses as flat-rate percentage', () => {
-    describe('normal income', () => {
+    describe('mediumincome', () => {
       it.each([
         { percentage: 0.3, gross: income },
         { percentage: 0.4, gross: income },
@@ -59,7 +59,7 @@ describe('estimates gross income from net income', () => {
   })
 
   describe('expenses as real amount', () => {
-    describe('normal income', () => {
+    describe('mediumincome', () => {
       it('estimates gross income from net income', () => {
         const expenses = { amount: 500000 }
         const { netIncome } = calculateNetIncome(income, expenses, rates, {
