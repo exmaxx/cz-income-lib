@@ -22,14 +22,14 @@
       "types": "./dist/lib/cjs/index.d.ts"
     }
   },
-  "prepublishOnly": "yarn build:clean && yarn build:lib",
   "scripts": {
     "test": "jest",
     "build:bundle": "webpack",
     "build:lib": "yarn build:lib:esm && yarn build:lib:cjs",
     "build:lib:esm": "tsc && tsc-alias",
     "build:lib:cjs": "tsc -p tsconfig.cjs.json",
-    "build:clean": "rm -rf dist"
+    "build:clean": "rm -rf dist",
+    "prepublishOnly": "yarn test && yarn build:clean && yarn build:lib"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
