@@ -109,9 +109,13 @@ describe.each([
     })
 
     it('throws exception when no result', () => {
-      const incorrectRates = { ...rates }
-
-      incorrectRates.incomeRates.rate = 1
+      const incorrectRates: Rates = {
+        ...rates,
+        incomeRates: {
+          ...rates.incomeRates,
+          rate: 1,
+        },
+      }
 
       expect(() => calculateGrossIncome(349090, { amount: 500000 }, incorrectRates)).toThrow()
     })
