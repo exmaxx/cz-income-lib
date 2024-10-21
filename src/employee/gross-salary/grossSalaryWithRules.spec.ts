@@ -1,5 +1,6 @@
 import { rates } from '../fixtures'
 import calculateGrossSalaryWithRules from './grossSalaryWithRules'
+import { areAlmostEqual } from '../../utils'
 
 describe('Employee - Gross Salary', () => {
   it('calculates gross income out of net salary and rates', () => {
@@ -20,10 +21,10 @@ describe('Employee - Gross Salary', () => {
     // (e.g. lower than minimal salary when working part-time)
 
     // Setup
-    const netSalary = 179583
+    const netSalary = 179583.6
 
     // Expectations
-    const expectedGrossIncome = 206399 // In real life it was 206400 (17200 per month), but it's a rounding issue
+    const expectedGrossIncome = 206400 // 17200 per month
 
     // Execution
     const grossIncome = calculateGrossSalaryWithRules(netSalary, rates, {
@@ -50,12 +51,12 @@ describe('Employee - Gross Salary', () => {
     })
 
     // Assertion
-    expect(grossIncome).toEqual(expectedGrossIncome)
+    expect(areAlmostEqual(grossIncome, expectedGrossIncome, 0.0000001)).toBe(true)
   })
 
   it('works when higher tax rate is applied to high salary', () => {
     // Setup
-    const netSalary = 1491625
+    const netSalary = 1491624.96
 
     // Expectations
     const expectedGrossIncome = 2040000 // i.e. 170000 per month
@@ -71,10 +72,10 @@ describe('Employee - Gross Salary', () => {
 
   it('works when maximal social insurance limit is reached', () => {
     // Setup
-    const netSalary = 2617625
+    const netSalary = 2617625.424
 
     // Expectations
-    const expectedGrossIncome = 3599999 // In real life it was 3600000 (300000 per month), but it's a rounding issue
+    const expectedGrossIncome = 3600000 // 300000 per month
 
     // Execution
     const grossIncome = calculateGrossSalaryWithRules(netSalary, rates, {

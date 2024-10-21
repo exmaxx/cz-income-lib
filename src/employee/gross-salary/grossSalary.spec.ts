@@ -1,6 +1,7 @@
 import { rates } from '../fixtures'
 import calculateGrossSalary from './grossSalary'
 import calculateNetSalary from '../net-salary/netSalary'
+import {areAlmostEqual} from "../../utils";
 
 describe('calculate gross salary', () => {
   it('calculates gross salary from net salary', () => {
@@ -52,19 +53,11 @@ describe('calculate gross salary', () => {
 
     const grossSalary = calculateGrossSalary(netSalary, rates)
 
-    expect(grossSalary).toEqual(expectedGrossSalary)
+    expect(areAlmostEqual(grossSalary, expectedGrossSalary, 0.0000001)).toBe(true)
   })
 
   it('works for no income at all (the person would just pay health insurance by himself)', () => {
     const netSalary = -rates.healthRates.minAmount
-    const expectedGrossSalary = 0
-    const grossSalary = calculateGrossSalary(netSalary, rates)
-
-    expect(grossSalary).toEqual(expectedGrossSalary)
-  })
-
-  it('return 0 instead of negative salary', () => {
-    const netSalary = -rates.healthRates.minAmount - 1 // anything below paid health insurance does not make sense, so we return 0
     const expectedGrossSalary = 0
     const grossSalary = calculateGrossSalary(netSalary, rates)
 
@@ -95,20 +88,59 @@ describe('calculate gross salary', () => {
     expect(grossSalary).toEqual(expectedGrossSalary)
   })
 
-  it('returns 0 when no result possible', () => {
-    const expectedGrossSalary = 0
+  it('throws exception when no result possible or incorrect input', () => {
     const netSalary = 207000 // any salary
 
+    // deep copy
     const incorrectRates = {
-      ...rates,
+      incomeRates: {
+        ...rates.incomeRates,
+      },
+      socialRates: {
+        ...rates.socialRates,
+      },
+      healthRates: {
+        ...rates.healthRates,
+      },
     }
 
+    // intentionally incorrect rates
     incorrectRates.incomeRates.rate = 1
     incorrectRates.socialRates.employeeRate = 0
     incorrectRates.healthRates.employeeRate = 0
 
-    const grossSalary = calculateGrossSalary(netSalary, incorrectRates)
+    expect(() => calculateGrossSalary(netSalary, incorrectRates)).toThrow()
+  })
+
+  it('return 0 when gross salary would be negative', () => {
+    const negativeGrossSalary = -1
+
+    const { netSalary } = calculateNetSalary(negativeGrossSalary, rates, {
+      isRoundingEnabled: false,
+    })
+
+    const expectedGrossSalary = 0
+    const grossSalary = calculateGrossSalary(netSalary, rates)
 
     expect(grossSalary).toEqual(expectedGrossSalary)
+  })
+
+  it('finishes for integer net salary', () => {
+    expect(() => calculateGrossSalary(10000002, rates)).not.toThrow()
+
+    // medium income
+    for (let netIncomeIterated = 1200000; netIncomeIterated < 1200005; netIncomeIterated++) {
+      expect(() => calculateGrossSalary(netIncomeIterated, rates)).not.toThrow()
+    }
+
+    // high income
+    for (let netIncomeIterated = 10000000; netIncomeIterated < 10000005; netIncomeIterated++) {
+      expect(() => calculateGrossSalary(netIncomeIterated, rates)).not.toThrow()
+    }
+
+    // low income
+    for (let netIncomeIterated = 200000; netIncomeIterated < 200005; netIncomeIterated++) {
+      expect(() => calculateGrossSalary(netIncomeIterated, rates)).not.toThrow()
+    }
   })
 })

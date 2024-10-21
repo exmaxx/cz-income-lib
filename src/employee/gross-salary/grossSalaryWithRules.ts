@@ -89,9 +89,10 @@ function calculateGrossSalaryWithRules(netSalary: number, rates: Rates, rules: R
 
   const bottom = 1 - getRatesCombined(rates, rules)
 
+  // TODO: Update this to use grossIncomeAdjustment and grossIncomeMultiple as well?
   const grossSalary = top / bottom
 
-  return Math.round(grossSalary)
+  return grossSalary
 }
 
 export default calculateGrossSalaryWithRules

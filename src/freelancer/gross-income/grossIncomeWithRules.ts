@@ -227,6 +227,7 @@ function calculateGrossIncomeWithRules(
     social.grossIncomeMultiple -
     health.grossIncomeMultiple
 
+  // TODO: Do we actually want to round the result?
   const result = Math.round(top / bottom)
 
   return Math.max(result, 0)

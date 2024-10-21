@@ -22,7 +22,7 @@ const rates: Rates = {
   healthRates: {
     employeeRate: 0.045, // 4.5%
     employerRate: 0.09, // 9%
-    minAmount: 0, // is calculated below
+    minAmount: Infinity, // is calculated below
   },
 }
 

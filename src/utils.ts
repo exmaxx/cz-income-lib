@@ -5,6 +5,6 @@
  * @param b
  * @param tolerance - The maximum difference between the two numbers. Default: 1
  */
-export function isAlmostEqual(a: number, b: number, tolerance: number = 1): boolean {
+export function areAlmostEqual(a: number, b: number, tolerance: number = 1): boolean {
   return Math.abs(a - b) <= tolerance
 }
