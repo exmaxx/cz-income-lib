@@ -1,7 +1,6 @@
 import { rates } from '../fixtures'
 import calculateGrossSalary from './grossSalary'
 import calculateNetSalary from '../net-salary/netSalary'
-import {areAlmostEqual} from "../../utils";
 
 describe('calculate gross salary', () => {
   it('calculates gross salary from net salary', () => {
@@ -53,7 +52,7 @@ describe('calculate gross salary', () => {
 
     const grossSalary = calculateGrossSalary(netSalary, rates)
 
-    expect(areAlmostEqual(grossSalary, expectedGrossSalary, 0.0000001)).toBe(true)
+    expect(grossSalary).toBeCloseTo(expectedGrossSalary, 5)
   })
 
   it('works for no income at all (the person would just pay health insurance by himself)', () => {

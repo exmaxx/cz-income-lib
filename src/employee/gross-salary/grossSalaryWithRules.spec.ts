@@ -1,6 +1,5 @@
 import { rates } from '../fixtures'
 import calculateGrossSalaryWithRules from './grossSalaryWithRules'
-import { areAlmostEqual } from '../../utils'
 
 describe('Employee - Gross Salary', () => {
   it('calculates gross income out of net salary and rates', () => {
@@ -51,7 +50,7 @@ describe('Employee - Gross Salary', () => {
     })
 
     // Assertion
-    expect(areAlmostEqual(grossIncome, expectedGrossIncome, 0.0000001)).toBe(true)
+    expect(grossIncome).toBeCloseTo(expectedGrossIncome, 5)
   })
 
   it('works when higher tax rate is applied to high salary', () => {

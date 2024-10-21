@@ -2,7 +2,7 @@ import calculateGrossSalaryWithRules from './grossSalaryWithRules'
 import calculateNetSalary from '../net-salary/netSalary'
 import { AVG_SALARY_MONTHLY } from '../constants'
 import { Rates } from '../types'
-import { areAlmostEqual } from '../../utils'
+import { areTechnicallyEqual } from '../../utils'
 
 function calculateGrossSalary(netSalary: number, rates: Rates): number {
   if (netSalary < -rates.healthRates.minAmount) {
@@ -14,9 +14,7 @@ function calculateGrossSalary(netSalary: number, rates: Rates): number {
   let grossSalary = calculateGrossSalaryWithRules(netSalary, rates)
   let verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-  const EQUALITY_TOLERANCE = 0.0000001 // with this difference the numbers are effectively the same (but floating point math is not exact)
-
-  if (areAlmostEqual(verification.netSalary, netSalary, EQUALITY_TOLERANCE)) {
+  if (areTechnicallyEqual(verification.netSalary, netSalary)) {
     return grossSalary
   }
 
@@ -29,7 +27,7 @@ function calculateGrossSalary(netSalary: number, rates: Rates): number {
 
     verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-    if (areAlmostEqual(verification.netSalary, netSalary, EQUALITY_TOLERANCE)) {
+    if (areTechnicallyEqual(verification.netSalary, netSalary)) {
       return grossSalary
     }
 
@@ -40,7 +38,7 @@ function calculateGrossSalary(netSalary: number, rates: Rates): number {
 
     verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-    if (areAlmostEqual(verification.netSalary, netSalary, EQUALITY_TOLERANCE)) {
+    if (areTechnicallyEqual(verification.netSalary, netSalary)) {
       return grossSalary
     }
   } else {
@@ -50,7 +48,7 @@ function calculateGrossSalary(netSalary: number, rates: Rates): number {
 
     verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-    if (areAlmostEqual(verification.netSalary, netSalary, EQUALITY_TOLERANCE)) {
+    if (areTechnicallyEqual(verification.netSalary, netSalary)) {
       return grossSalary
     }
 
@@ -61,7 +59,7 @@ function calculateGrossSalary(netSalary: number, rates: Rates): number {
 
     verification = calculateNetSalary(grossSalary, rates, { isRoundingEnabled: false })
 
-    if (areAlmostEqual(verification.netSalary, netSalary, EQUALITY_TOLERANCE)) {
+    if (areTechnicallyEqual(verification.netSalary, netSalary)) {
       return grossSalary
     }
   }

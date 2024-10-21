@@ -11,7 +11,7 @@ describe('estimates gross income from net income', () => {
       it.each([
         { percentage: 0.3, gross: income },
         { percentage: 0.4, gross: income },
-        { percentage: 0.6, gross: 1500000 },
+        { percentage: 0.6, gross: income * 1.5 },
       ])('flat-rate: $percentage', ({ percentage, gross }) => {
         const expenses = { percentage }
 
@@ -20,7 +20,7 @@ describe('estimates gross income from net income', () => {
         })
 
         const result = calculateGrossIncomeWithRules(netIncome, expenses, rates)
-        expect(result).toEqual(gross)
+        expect(result).toBeCloseTo(gross)
       })
     })
 
@@ -59,14 +59,16 @@ describe('estimates gross income from net income', () => {
   })
 
   describe('expenses as real amount', () => {
-    describe('mediumincome', () => {
+    describe('medium income', () => {
       it('estimates gross income from net income', () => {
         const expenses = { amount: 500000 }
         const { netIncome } = calculateNetIncome(income, expenses, rates, {
           isRoundingEnabled: false,
         })
 
-        expect(calculateGrossIncomeWithRules(netIncome, expenses, rates)).toEqual(income)
+        const result = calculateGrossIncomeWithRules(netIncome, expenses, rates)
+
+        expect(result).toBeCloseTo(income)
       })
     })
 

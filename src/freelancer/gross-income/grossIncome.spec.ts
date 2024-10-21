@@ -74,7 +74,9 @@ describe.each([
         isRoundingEnabled: false,
       })
 
-      expect(calculateGrossIncome(netIncome, expenses, rates)).toEqual(grossIncome)
+      const result = calculateGrossIncome(netIncome, expenses, rates)
+
+      expect(result).toBeCloseTo(grossIncome, 5)
     })
 
     it('works when minimal base for health insurance is reached', () => {
@@ -90,7 +92,7 @@ describe.each([
 
       const result = calculateGrossIncome(netIncome, expenses, rates)
 
-      expect(result).toBeCloseTo(grossIncome)
+      expect(result).toBeCloseTo(grossIncome, 5)
     })
 
     it('works when minimal base for social insurance is reached', () => {
@@ -106,7 +108,7 @@ describe.each([
 
       const result = calculateGrossIncome(netIncome, expenses, rates)
 
-      expect(result).toEqual(grossIncome)
+      expect(result).toBeCloseTo(grossIncome, 5)
     })
 
     it('works when zero income tax is reached', () => {

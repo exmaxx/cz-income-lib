@@ -1,10 +1,10 @@
 /**
  * Checks if two numbers are close enough to be considered equal within a given tolerance.
+ * Solve the floating-point problem in JavaScript.
  *
  * @param a
  * @param b
- * @param tolerance - The maximum difference between the two numbers. Default: 1
  */
-export function areAlmostEqual(a: number, b: number, tolerance: number = 1): boolean {
-  return Math.abs(a - b) <= tolerance
+export function areTechnicallyEqual(a: number, b: number): boolean {
+  return Math.abs(a - b) <= 0.0000001
 }
