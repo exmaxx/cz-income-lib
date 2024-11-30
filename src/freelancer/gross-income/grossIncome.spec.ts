@@ -16,8 +16,10 @@ describe('low income', () => {
 })
 
 describe.each([
-  { grossIncome: 1000000, title: 'medium income' },
-  { grossIncome: 10000000, title: 'high income' },
+  { grossIncome: 1000000, title: 'income: 1000000' },
+  { grossIncome: 2000000, title: 'income: 2000000 (max. flat rate base)' },
+  { grossIncome: 2600000, title: 'income: 2600000' },
+  { grossIncome: 10000000, title: 'income: 10000000' },
 ])('calculate gross income - $title', ({ grossIncome }) => {
   describe('expenses as flat-rate percentage', () => {
     it('calculates gross income from net income (40% rate)', () => {
@@ -136,7 +138,7 @@ describe.each([
         ...rates,
         incomeRates: {
           ...rates.incomeRates,
-          rate: 1,
+          credit: 1000000,
         },
       }
 

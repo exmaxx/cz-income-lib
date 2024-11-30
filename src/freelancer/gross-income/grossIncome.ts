@@ -84,7 +84,27 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
   }
 
   grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isMaxFlatRateUsed: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
+    return grossIncome
+  }
+
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
     isMaxSocialBaseUsed: true,
+  })
+
+  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
+    return grossIncome
+  }
+
+  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
+    isHighRateIncomeTaxUsed: true,
   })
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
