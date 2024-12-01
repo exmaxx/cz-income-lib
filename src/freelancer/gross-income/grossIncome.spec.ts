@@ -15,6 +15,16 @@ describe('low income', () => {
   })
 })
 
+// Only use this for thorough testing. It takes half an hour to run.
+xdescribe('carpet bombing', () => {
+  it('successfully returns a value (no throw)', () => {
+    for (let i = 0; i < 20000000; i++) {
+      expect(() => calculateGrossIncome(i, { percentage: 0.6 }, rates)).not.toThrow()
+      expect(() => calculateGrossIncome(i, { amount: 500000 }, rates)).not.toThrow()
+    }
+  })
+})
+
 describe.each([
   { grossIncome: 1000000, title: 'income: 1000000' },
   { grossIncome: 2000000, title: 'income: 2000000 (max. flat rate base)' },
