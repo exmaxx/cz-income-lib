@@ -1,6 +1,6 @@
 {
   "name": "@exmaxx/cz-income-lib",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Calculates taxes for self-employed and employees",
   "author": "Marek Ulicny",
   "license": "CC-BY-SA-4.0",
