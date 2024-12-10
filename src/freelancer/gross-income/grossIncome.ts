@@ -1,6 +1,6 @@
 import calculateGrossIncomeWithRules from './grossIncomeWithRules'
 import calculateNetIncome from '../net-income/netIncome'
-import { Expenses, Rates } from '../types'
+import { Expenses, NetIncomeResult, Rates } from '../types'
 import { areTechnicallyEqual } from '../../utils'
 
 /**
@@ -41,110 +41,34 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
     return 0
   }
 
-  let grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates)
-  let verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+  const ruleSets = [
+    {},
+    { isMinHealthBaseUsed: true },
+    { isMinHealthBaseUsed: true, isMinSocialBaseUsed: true },
+    { isMinHealthBaseUsed: true, isMinSocialBaseUsed: true, isIncomeTaxZero: true },
+    { isMaxFlatRateUsed: true },
+    { isMaxSocialBaseUsed: true },
+    { isHighRateIncomeTaxUsed: true },
+    { isMaxSocialBaseUsed: true, isHighRateIncomeTaxUsed: true },
+    { isMaxFlatRateUsed: true, isHighRateIncomeTaxUsed: true },
+    { isMaxSocialBaseUsed: true, isHighRateIncomeTaxUsed: true, isMaxFlatRateUsed: true },
+  ]
 
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
+  let grossIncome: number | null = null
+  let verification: NetIncomeResult | null = null
+
+  for (const rules of ruleSets) {
+    grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, rules)
+
+    verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+
+    if (areTechnicallyEqual(verification.netIncome, netIncome)) {
+      return grossIncome
+    }
   }
 
-  // TODO: Can we do a check to know whether to go the low or high income path?
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMinHealthBaseUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMinHealthBaseUsed: true,
-    isMinSocialBaseUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMinHealthBaseUsed: true,
-    isMinSocialBaseUsed: true,
-    isIncomeTaxZero: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMaxFlatRateUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMaxSocialBaseUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isHighRateIncomeTaxUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMaxSocialBaseUsed: true,
-    isHighRateIncomeTaxUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMaxFlatRateUsed: true,
-    isHighRateIncomeTaxUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
-  }
-
-  grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, {
-    isMaxSocialBaseUsed: true,
-    isHighRateIncomeTaxUsed: true,
-    isMaxFlatRateUsed: true,
-  })
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
+  if (verification === null) {
+    throw new Error('Unable to calculate gross income: no verification was done')
   }
 
   const lowestTaxAndInsurance = verification.social + verification.health // tax is already 0, social and health base is at minimum
@@ -156,9 +80,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
     // so to get the real gross income we need to add the original `netIncome`
     grossIncome = amount + lowestTaxAndInsurance + netIncome
   } else {
-    throw new Error(
-      'Unable to calculate gross income (flat-rate calculation should have not reached this point)'
-    )
+    throw new Error('Unable to calculate gross income: flat-rate calculation failed')
   }
 
   verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
@@ -167,7 +89,7 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
     return grossIncome
   }
 
-  throw new Error('Unable to calculate gross income (all approximations failed)')
+  throw new Error('Unable to calculate gross income: all approximations failed')
 }
 
 export default calculateGrossIncome

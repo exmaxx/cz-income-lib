@@ -3,6 +3,7 @@ import {
   HealthInsuranceRates,
   IncomeRates,
   NetIncomeCalculationOptions,
+  NetIncomeResult,
   Rates,
   SocialInsuranceRates,
 } from '../types'
@@ -180,7 +181,7 @@ function calculateNetIncome(
   expenses: Expenses,
   rates: Rates,
   options: NetIncomeCalculationOptions = { isRoundingEnabled: true }
-) {
+): NetIncomeResult {
   const { incomeRates, socialRates, healthRates } = rates
 
   const { incomeTaxBase, reachedThresholds: thresholdsTaxBase } = calculateIncomeTaxBase(

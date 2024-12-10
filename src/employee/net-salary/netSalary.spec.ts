@@ -2,7 +2,7 @@ import calculateNetSalary from './netSalary'
 import { rates } from '../fixtures'
 
 describe('Employee - Net Income', () => {
-  describe('mediumsalary', () => {
+  describe('medium salary', () => {
     it('calculates taxes and insurance', () => {
       const grossSalaryMonthly = 100000
       const result = calculateNetSalary(12 * grossSalaryMonthly, rates)

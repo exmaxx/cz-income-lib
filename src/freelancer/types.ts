@@ -72,3 +72,19 @@ export interface NetIncomeCalculationOptions {
    */
   isRoundingEnabled?: boolean
 }
+
+/**
+ * The result of the net income calculation.
+ */
+export interface NetIncomeResult {
+  health: number;
+  healthAssessmentBase: number;
+  incomeTax: number;
+  incomeTaxBase: number;
+  incomeTaxWithHighRate: number;
+  incomeTaxWithLowRate: number;
+  netIncome: number;
+  reachedThresholds: string[];
+  social: number;
+  socialAssessmentBase: number;
+}
