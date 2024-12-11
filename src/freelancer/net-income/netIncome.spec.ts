@@ -9,6 +9,7 @@ describe('calculator of net income and insurance', () => {
 
   describe('expenses as flat-rate', () => {
     const expenses: Expenses = {
+      // TODO: Iterate over all possible percentages.
       percentage: 0.4, // 40%
     }
 
@@ -48,6 +49,16 @@ describe('calculator of net income and insurance', () => {
       expect(reachedThresholds).toEqual(
         expect.arrayContaining(['MAX_FLAT_RATE', 'HIGH_TAX', 'MAX_BASE_SOCIAL'])
       )
+    })
+
+    xit('works when below zero', () => {
+      // TODO: Implement this test.
+    })
+
+    xit('works even when minimal deductions', () => {
+      // Normally, we would limit this value to minimal deductions. But we need even lower values
+      // so that the gross calculation can work.
+      // TODO: Implement this test.
     })
   })
 
@@ -151,6 +162,42 @@ describe('calculator of net income and insurance', () => {
       expect(incomeTaxWithHighRate).toEqual(highTaxAmount * highRate)
 
       expect(reachedThresholds).toEqual(expect.arrayContaining(['HIGH_TAX', 'MAX_BASE_SOCIAL']))
+    })
+
+    xit('works when net income below zero', () => {
+      // TODO: Implement this test.
+    })
+
+    xit('works even when minimal deductions', () => {
+      // Normally, we would limit this value to minimal deductions. But we need even lower values
+      // so that the gross calculation can work.
+      // TODO: Implement this test.
+    })
+
+    describe('exceptions', () => {
+      it('throws exception when expenses negative', () => {
+        const expenses: Expenses = {
+          amount: -1,
+        }
+
+        expect(() => calculateNetIncome(income, expenses, rates)).toThrow()
+      })
+
+      it('throws does not throw when expenses zero', () => {
+        const expenses: Expenses = {
+          amount: 0,
+        }
+
+        expect(() => calculateNetIncome(income, expenses, rates)).not.toThrow()
+      })
+
+      it('throws does not throw when expenses positive', () => {
+        const expenses: Expenses = {
+          amount: 1,
+        }
+
+        expect(() => calculateNetIncome(income, expenses, rates)).not.toThrow()
+      })
     })
   })
 })

@@ -195,7 +195,7 @@ function getHealth(expenses: Expenses, healthRates: HealthInsuranceRates, rules:
  * @param rates - The rates for income tax, social insurance, and health insurance
  * @param rules - Use the rules when you know that the net income was calculated with some thresholds
  *
- * @returns The gross income (zero if negative)
+ * @returns The gross income
  */
 function calculateGrossIncomeWithRules(
   netIncome: number,
@@ -203,10 +203,6 @@ function calculateGrossIncomeWithRules(
   rates: Rates,
   rules: Rules = {}
 ): number {
-  if (netIncome <= 0) {
-    return 0
-  }
-
   const { incomeRates, socialRates, healthRates } = rates
 
   const tax = getTax(expenses, incomeRates, rules)
@@ -227,9 +223,7 @@ function calculateGrossIncomeWithRules(
     social.grossIncomeMultiple -
     health.grossIncomeMultiple
 
-  const result = top / bottom
-
-  return Math.max(result, 0)
+  return top / bottom
 }
 
 export default calculateGrossIncomeWithRules

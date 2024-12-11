@@ -3,6 +3,7 @@ import {
   HealthInsuranceRates,
   IncomeRates,
   NetIncomeCalculationOptions,
+  NetIncomeResult,
   Rates,
   SocialInsuranceRates,
 } from '../types'
@@ -180,7 +181,11 @@ function calculateNetIncome(
   expenses: Expenses,
   rates: Rates,
   options: NetIncomeCalculationOptions = { isRoundingEnabled: true }
-) {
+): NetIncomeResult {
+  if (expenses.amount !== undefined && expenses.amount < 0) {
+    throw new Error('Expenses cannot be negative')
+  }
+
   const { incomeRates, socialRates, healthRates } = rates
 
   const { incomeTaxBase, reachedThresholds: thresholdsTaxBase } = calculateIncomeTaxBase(
@@ -211,12 +216,8 @@ function calculateNetIncome(
 
   let netIncome = grossIncome - incomeTax - social - health
 
-  if ('amount' in expenses) {
-    if (expenses.amount) {
-      netIncome -= expenses.amount
-    }
-
-    netIncome = Math.max(netIncome, 0)
+  if (expenses.amount) {
+    netIncome -= expenses.amount
   }
 
   return {

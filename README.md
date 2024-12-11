@@ -14,17 +14,13 @@ Run: `yarn test`
 
 ### Library
 
-For publishing to NPM repository.
-
-Compiles TypeScript to JavaScript.
+For publishing to NPM repository. Compiles TypeScript to JavaScript.
 
 Run: `yarn build:lib`
 
 ### Minified Bundle
 
-For importing from a URL in a browser.
-
-Compiles TypeScript to JavaScript and minifies it, using Webpack.
+For importing from a URL in a browser. Compiles TypeScript to JavaScript and minifies it, using Webpack.
 
 Run: `yarn build:bundle`
 
