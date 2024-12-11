@@ -25,12 +25,43 @@ describe('estimates gross income from net income', () => {
     })
 
     describe('low income', () => {
-      it('returns 0 for a net income of 0', () => {
-        expect(calculateGrossIncomeWithRules(0, { percentage: 0.6 }, rates)).toEqual(0)
+      const minDeductions =
+        rates.healthRates.minBase * rates.healthRates.rate +
+        rates.socialRates.minBase * rates.socialRates.rate
+
+      it('returns gross income equal to min deductions for a net income of 0', () => {
+        expect(
+          calculateGrossIncomeWithRules(0, { percentage: 0.6 }, rates, {
+            isMinHealthBaseUsed: true,
+            isMinSocialBaseUsed: true,
+            isIncomeTaxZero: true,
+          })
+        ).toEqual(minDeductions)
       })
 
-      it('returns 0 for a negative net income', () => {
-        expect(calculateGrossIncomeWithRules(-1000, { percentage: 0.6 }, rates)).toEqual(0)
+      // This is the case when gross income was zero but deductions needed to be paid -> negative net income
+      it('returns 0 gross income for a net income equal to negative min deductions', () => {
+        expect(
+          calculateGrossIncomeWithRules(-minDeductions, { percentage: 0.6 }, rates, {
+            isMinHealthBaseUsed: true,
+            isMinSocialBaseUsed: true,
+            isIncomeTaxZero: true,
+          })
+        ).toEqual(0)
+      })
+
+      it('works for almost zero gross income (net income is negative)', () => {
+        const { netIncome } = calculateNetIncome(100, { percentage: 0.6 }, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const result = calculateGrossIncomeWithRules(netIncome, { percentage: 0.6 }, rates, {
+          isMinHealthBaseUsed: true,
+          isMinSocialBaseUsed: true,
+          isIncomeTaxZero: true,
+        })
+
+        expect(result).toEqual(100)
       })
     })
 

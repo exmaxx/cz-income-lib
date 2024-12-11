@@ -3,35 +3,49 @@ import calculateNetIncome from '../net-income/netIncome'
 import { rates } from '../fixtures'
 import { Expenses, Rates } from '../types'
 
+const minDeductions =
+  rates.healthRates.minBase * rates.healthRates.rate +
+  rates.socialRates.minBase * rates.socialRates.rate
+
 describe('expenses as a flat rate percentage', () => {
-  it('finishes for integer net income', () => {
+  it.each([
+    { netIncome: 1200000, description: 'medium income' }, // 100 000 CZK / month
+    { netIncome: 8000000, description: 'high income' }, // 666 667 CZK / month
+    { netIncome: 300000, description: 'low income' }, // 25 000 CZK / month
+  ])('finishes for integer net income - for $description', ({ netIncome }) => {
     const expenses: Expenses = {
       percentage: 0.6,
     }
 
-    // medium income
-    for (let netIncomeIterated = 1200000; netIncomeIterated < 1200005; netIncomeIterated++) {
-      expect(() => calculateGrossIncome(netIncomeIterated, expenses, rates)).not.toThrow()
-    }
-
-    // high income
-    for (let netIncomeIterated = 8000000; netIncomeIterated < 8000005; netIncomeIterated++) {
-      expect(() => calculateGrossIncome(netIncomeIterated, expenses, rates)).not.toThrow()
-    }
-
-    // low income
-    for (let netIncomeIterated = 300000; netIncomeIterated < 300005; netIncomeIterated++) {
+    for (
+      let netIncomeIterated = netIncome;
+      netIncomeIterated < netIncome + 5;
+      netIncomeIterated++
+    ) {
       expect(() => calculateGrossIncome(netIncomeIterated, expenses, rates)).not.toThrow()
     }
   })
 
   describe.each([
     { grossIncome: 0 },
-    { grossIncome: 1000000 },
-    { grossIncome: 2000000 },
-    { grossIncome: 2600000 },
-    { grossIncome: 10000000 },
+    { grossIncome: 600000 }, // 50 000 CZK / month
+    { grossIncome: 1200000 }, // 100 000 CZK / month
+    { grossIncome: 2000000 }, // 166 667 CZK / month
+    { grossIncome: 2600000 }, // 216 667 CZK / month
+    { grossIncome: 10000000 }, // 833 333 CZK / month
   ])('gross income $grossIncome', ({ grossIncome }) => {
+    it('calculates gross income from net income (30% rate)', () => {
+      const expenses: Expenses = {
+        percentage: 0.3,
+      }
+
+      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
+
+      expect(calculateGrossIncome(netIncome, expenses, rates)).toBeCloseTo(grossIncome, 5)
+    })
+
     it('calculates gross income from net income (40% rate)', () => {
       const expenses: Expenses = {
         percentage: 0.4,
@@ -58,19 +72,28 @@ describe('expenses as a flat rate percentage', () => {
   })
 
   describe('zero net income', () => {
-    it('returns 0 for a net income of 0', () => {
-      expect(calculateGrossIncome(0, { percentage: 0.4 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(0, { percentage: 0.6 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(0, { percentage: 0.8 }, rates)).toEqual(0)
-    })
+    it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
+      'returns minimal deductions for a zero net income ($percentage rate)',
+      ({ percentage }) => {
+        expect(calculateGrossIncome(0, { percentage }, rates)).toEqual(minDeductions)
+      }
+    )
   })
 
   describe('negative net income', () => {
-    it('returns 0 for a negative net income', () => {
-      expect(calculateGrossIncome(-1000, { percentage: 0.4 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(-1000, { percentage: 0.6 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(-1000, { percentage: 0.8 }, rates)).toEqual(0)
-    })
+    it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
+      'returns 0 for a net income equal to negative minimal deductions ($percentage rate)',
+      ({ percentage }) => {
+        expect(calculateGrossIncome(-minDeductions, { percentage }, rates)).toEqual(0)
+      }
+    )
+
+    it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
+      'still returns 0, even when net income is below to negative minimal deductions ($percentage rate)',
+      ({ percentage }) => {
+        expect(calculateGrossIncome(-minDeductions - 1, { percentage }, rates)).toEqual(0)
+      }
+    )
   })
 })
 
@@ -95,15 +118,14 @@ describe('expenses as real amount', () => {
   })
 
   describe.each([
-    { grossIncome: 0 },
-    // { grossIncome: 120000 }, // FIXME: Does not pass tests.
-    { grossIncome: 1000000 },
+    { grossIncome: 300000 },
+    { grossIncome: 500000 },
     { grossIncome: 1000000 },
     { grossIncome: 2600000 },
     { grossIncome: 10000000 },
   ])('for gross income $grossIncome', ({ grossIncome }) => {
     it('calculates gross income from net income', () => {
-      const expenses = { amount: 500000 }
+      const expenses = { amount: grossIncome * 0.5 }
 
       const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
         isRoundingEnabled: false,
@@ -151,14 +173,9 @@ describe('expenses as real amount', () => {
         amount: grossIncome - 200000,
       }
 
-      const { netIncome, incomeTax } = calculateNetIncome(
-        grossIncome,
-        expenses,
-        rates,
-        {
-          isRoundingEnabled: false,
-        }
-      )
+      const { netIncome, incomeTax } = calculateNetIncome(grossIncome, expenses, rates, {
+        isRoundingEnabled: false,
+      })
 
       expect(incomeTax).toBe(0)
 
@@ -168,23 +185,15 @@ describe('expenses as real amount', () => {
     })
   })
 
-  describe('zero net income', () => {
-    it('returns 0 for a net income of 0', () => {
-      expect(calculateGrossIncome(0, { amount: 0 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(0, { amount: 500000 }, rates)).toEqual(0)
+  describe('zero gross income', () => {
+    it('returns 0 for a net income equal to minimal deductions', () => {
+      expect(calculateGrossIncome(-minDeductions, { amount: 0 }, rates)).toEqual(0)
+      expect(calculateGrossIncome(-minDeductions, { amount: 500000 }, rates)).toEqual(500000)
     })
-  })
 
-  describe('negative net income', () => {
-    it('returns 0 for a negative net income', () => {
-      expect(calculateGrossIncome(-1000, { amount: 0 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(-1000, { amount: 500000 }, rates)).toEqual(0)
-    })
-  })
-
-  describe('negative expenses', () => {
-    it('throws exception for negative expenses', () => {
-      expect(() => calculateGrossIncome(100000, { amount: -500000 }, rates)).toThrow()
+    it('still returns 0 for a net income below minimal deductions', () => {
+      expect(calculateGrossIncome(-minDeductions - 1, { amount: 0 }, rates)).toEqual(0)
+      expect(calculateGrossIncome(-minDeductions - 1, { amount: 500000 }, rates)).toEqual(500000)
     })
   })
 

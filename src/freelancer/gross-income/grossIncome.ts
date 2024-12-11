@@ -35,9 +35,20 @@ import { areTechnicallyEqual } from '../../utils'
  * @param netIncome - The income after taxes and insurance contributions
  * @param expenses - Either a fixed amount or a flat-rate percentage
  * @param rates - The rates for income tax, social insurance, and health insurance
+ * @returns The gross income, which is always zero or positive.
  */
 function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rates): number {
-  if (netIncome <= 0) {
+  const minDeductions =
+    rates.healthRates.minBase * rates.healthRates.rate +
+    rates.socialRates.minBase * rates.socialRates.rate
+
+  // The smallest possible net income is -minDeductions. This is the case when the gross income is zero
+  // and you have to pay the minimal health and social insurance. Anything below this is not possible.
+  if (netIncome < -minDeductions) {
+    if ('amount' in expenses) {
+      return expenses.amount || 0
+    }
+
     return 0
   }
 
@@ -59,34 +70,11 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
 
   for (const rules of ruleSets) {
     grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, rules)
-
     verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
     if (areTechnicallyEqual(verification.netIncome, netIncome)) {
       return grossIncome
     }
-  }
-
-  if (verification === null) {
-    throw new Error('Unable to calculate gross income: no verification was done')
-  }
-
-  const lowestTaxAndInsurance = verification.social + verification.health // tax is already 0, social and health base is at minimum
-
-  if ('amount' in expenses) {
-    const amount = expenses.amount || 0
-
-    // we are at the state where `expenses.amount + lowestTaxAndInsurance` together mean 0 net income
-    // so to get the real gross income we need to add the original `netIncome`
-    grossIncome = amount + lowestTaxAndInsurance + netIncome
-  } else {
-    throw new Error('Unable to calculate gross income: flat-rate calculation failed')
-  }
-
-  verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
-
-  if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-    return grossIncome
   }
 
   throw new Error('Unable to calculate gross income: all approximations failed')
