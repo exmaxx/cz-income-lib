@@ -1,14 +1,16 @@
-import calculateGrossIncome from './grossIncome'
 import calculateNetIncome from '../net-income/netIncome'
 import { rates } from '../fixtures'
 import { Expenses } from '../types'
 import { Rates } from '../rates'
+import GrossIncomeCalculator from './grossIncome'
+
 describe('expenses as a flat rate percentage', () => {
   it.each([
-    { netIncome: 1200000, description: 'medium income' }, // 100 000 CZK / month
-    { netIncome: 8000000, description: 'high income' }, // 666 667 CZK / month
-    { netIncome: 300000, description: 'low income' }, // 25 000 CZK / month
-  ])('finishes for integer net income - for $description', ({ netIncome }) => {
+    { netIncome: 1200000 }, // 100 000 CZK / month
+    { netIncome: 8000000 }, // 666 667 CZK / month
+    { netIncome: 300000 }, // 25 000 CZK / month
+  ])('finishes calculation (net income $netIncome)', ({ netIncome }) => {
+    // Arrange
     const expenses: Expenses = {
       percentage: 0.6,
     }
@@ -18,7 +20,13 @@ describe('expenses as a flat rate percentage', () => {
       netIncomeIterated < netIncome + 5;
       netIncomeIterated++
     ) {
-      expect(() => calculateGrossIncome(netIncomeIterated, expenses, rates)).not.toThrow()
+      const grossIncomeCalculator = new GrossIncomeCalculator(netIncomeIterated, expenses, rates)
+
+      // Act
+      const act = () => grossIncomeCalculator.calculate()
+
+      // Assert
+      expect(act).not.toThrow()
     }
   })
 
@@ -30,41 +38,27 @@ describe('expenses as a flat rate percentage', () => {
     { grossIncome: 2600000 }, // 216 667 CZK / month
     { grossIncome: 10000000 }, // 833 333 CZK / month
   ])('gross income $grossIncome', ({ grossIncome }) => {
-    it('calculates gross income from net income (30% rate)', () => {
-      const expenses: Expenses = {
-        percentage: 0.3,
+    it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
+      'calculates gross income from net income (rate $percentage)',
+      ({ percentage }) => {
+        // Arrange
+        const expenses: Expenses = {
+          percentage,
+        }
+
+        const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
+          isRoundingEnabled: false,
+        })
+
+        const grossIncomeCalculator = new GrossIncomeCalculator(netIncome, expenses, rates)
+
+        // Act
+        const result = grossIncomeCalculator.calculate()
+
+        // Assert
+        expect(result).toBeCloseTo(grossIncome, 5)
       }
-
-      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
-        isRoundingEnabled: false,
-      })
-
-      expect(calculateGrossIncome(netIncome, expenses, rates)).toBeCloseTo(grossIncome, 5)
-    })
-
-    it('calculates gross income from net income (40% rate)', () => {
-      const expenses: Expenses = {
-        percentage: 0.4,
-      }
-
-      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
-        isRoundingEnabled: false,
-      })
-
-      expect(calculateGrossIncome(netIncome, expenses, rates)).toBeCloseTo(grossIncome, 5)
-    })
-
-    it('calculates gross income from net income (60% rate)', () => {
-      const expenses: Expenses = {
-        percentage: 0.6,
-      }
-
-      const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
-        isRoundingEnabled: false,
-      })
-
-      expect(calculateGrossIncome(netIncome, expenses, rates)).toBeCloseTo(grossIncome, 5)
-    })
+    )
   })
 
   describe('zero net income', () => {
@@ -73,7 +67,14 @@ describe('expenses as a flat rate percentage', () => {
     it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
       'returns minimal deductions for a zero net income ($percentage rate)',
       ({ percentage }) => {
-        expect(calculateGrossIncome(0, { percentage }, rates)).toEqual(minDeductions)
+        // Arrange
+        const grossIncomeCalculator = new GrossIncomeCalculator(0, { percentage }, rates)
+
+        // Act
+        const result = grossIncomeCalculator.calculate()
+
+        // Assert
+        expect(result).toEqual(minDeductions)
       }
     )
   })
@@ -84,14 +85,36 @@ describe('expenses as a flat rate percentage', () => {
     it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
       'returns 0 for a net income equal to negative minimal deductions ($percentage rate)',
       ({ percentage }) => {
-        expect(calculateGrossIncome(-minDeductions, { percentage }, rates)).toEqual(0)
+        // Arrange
+        const grossIncomeCalculator = new GrossIncomeCalculator(
+          -minDeductions,
+          { percentage },
+          rates
+        )
+
+        // Act
+        const result = grossIncomeCalculator.calculate()
+
+        // Assert
+        expect(result).toEqual(0)
       }
     )
 
     it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
       'still returns 0, even when net income is below to negative minimal deductions ($percentage rate)',
       ({ percentage }) => {
-        expect(calculateGrossIncome(-minDeductions - 1, { percentage }, rates)).toEqual(0)
+        // Arrange
+        const grossIncomeCalculator = new GrossIncomeCalculator(
+          -minDeductions - 1,
+          { percentage },
+          rates
+        )
+
+        // Act
+        const result = grossIncomeCalculator.calculate()
+
+        // Assert
+        expect(result).toEqual(0)
       }
     )
   })
@@ -101,19 +124,33 @@ describe('expenses as real amount', () => {
   it('finishes for consecutive net income values (covers cases that have decimal intermediate result)', () => {
     // medium income
     for (let netIncomeIterated = 1200000; netIncomeIterated < 1200005; netIncomeIterated++) {
-      expect(() => calculateGrossIncome(netIncomeIterated, { amount: 500000 }, rates)).not.toThrow()
+      const grossIncomeCalculator = new GrossIncomeCalculator(
+        netIncomeIterated,
+        { amount: 500000 },
+        rates
+      )
+      expect(() => grossIncomeCalculator.calculate()).not.toThrow()
     }
 
     // high income
     for (let netIncomeIterated = 8000000; netIncomeIterated < 8000005; netIncomeIterated++) {
-      expect(() =>
-        calculateGrossIncome(netIncomeIterated, { amount: 3000000 }, rates)
-      ).not.toThrow()
+      const grossIncomeCalculator = new GrossIncomeCalculator(
+        netIncomeIterated,
+        { amount: 3000000 },
+        rates
+      )
+
+      expect(() => grossIncomeCalculator.calculate()).not.toThrow()
     }
 
     // low income
     for (let netIncomeIterated = 300000; netIncomeIterated < 300005; netIncomeIterated++) {
-      expect(() => calculateGrossIncome(netIncomeIterated, { amount: 100000 }, rates)).not.toThrow()
+      const grossIncomeCalculator = new GrossIncomeCalculator(
+        netIncomeIterated,
+        { amount: 100000 },
+        rates
+      )
+      expect(() => grossIncomeCalculator.calculate()).not.toThrow()
     }
   })
 
@@ -125,18 +162,24 @@ describe('expenses as real amount', () => {
     { grossIncome: 10000000 },
   ])('for gross income $grossIncome', ({ grossIncome }) => {
     it('calculates gross income from net income', () => {
+      // Arrange
       const expenses = { amount: grossIncome * 0.5 }
 
       const { netIncome } = calculateNetIncome(grossIncome, expenses, rates, {
         isRoundingEnabled: false,
       })
 
-      const result = calculateGrossIncome(netIncome, expenses, rates)
+      const grossIncomeCalculator = new GrossIncomeCalculator(netIncome, expenses, rates)
 
+      // Act
+      const result = grossIncomeCalculator.calculate()
+
+      // Assert
       expect(result).toBeCloseTo(grossIncome, 5)
     })
 
     it('works when minimal base for health insurance is reached', () => {
+      // Arrange
       const expenses: Expenses = {
         amount: grossIncome - 300000,
       }
@@ -145,14 +188,18 @@ describe('expenses as real amount', () => {
         isRoundingEnabled: false,
       })
 
+      const grossIncomeCalculator = new GrossIncomeCalculator(netIncome, expenses, rates)
+
+      // Act
+      const result = grossIncomeCalculator.calculate()
+
+      // Assert
       expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
-
-      const result = calculateGrossIncome(netIncome, expenses, rates)
-
       expect(result).toBeCloseTo(grossIncome, 5)
     })
 
     it('works when minimal base for social insurance is reached', () => {
+      // Arrange
       const expenses: Expenses = {
         amount: grossIncome - 220000,
       }
@@ -161,14 +208,18 @@ describe('expenses as real amount', () => {
         isRoundingEnabled: false,
       })
 
+      const grossIncomeCalculator = new GrossIncomeCalculator(netIncome, expenses, rates)
+
+      // Act
+      const result = grossIncomeCalculator.calculate()
+
+      // Assert
       expect(socialAssessmentBase).toEqual(rates.socialRates.minBase)
-
-      const result = calculateGrossIncome(netIncome, expenses, rates)
-
       expect(result).toBeCloseTo(grossIncome, 5)
     })
 
     it('works when zero income tax is reached', () => {
+      // Arrange
       const expenses: Expenses = {
         amount: grossIncome - 200000,
       }
@@ -177,47 +228,82 @@ describe('expenses as real amount', () => {
         isRoundingEnabled: false,
       })
 
+      const grossIncomeCalculator = new GrossIncomeCalculator(netIncome, expenses, rates)
+
+      // Act
+      const result = grossIncomeCalculator.calculate()
+
+      // Assert
       expect(incomeTax).toBe(0)
-
-      const result = calculateGrossIncome(netIncome, expenses, rates)
-
       expect(result).toEqual(grossIncome)
     })
   })
 
-  describe('zero gross income', () => {
-    const { minDeductions } = rates
+  describe.each([{ amount: 0 }, { amount: 500000 }])(
+    'zero gross income (for expenses of $amount)',
+    ({ amount }) => {
+      const { minDeductions } = rates
 
-    it('returns 0 for a net income equal to minimal deductions', () => {
-      expect(calculateGrossIncome(-minDeductions, { amount: 0 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(-minDeductions, { amount: 500000 }, rates)).toEqual(500000)
-    })
+      it('returns original expenses for a net income equal to negative minimal deductions', () => {
+        // Arrange
+        const calculator = new GrossIncomeCalculator(-minDeductions, { amount }, rates)
 
-    it('still returns 0 for a net income below minimal deductions', () => {
-      expect(calculateGrossIncome(-minDeductions - 1, { amount: 0 }, rates)).toEqual(0)
-      expect(calculateGrossIncome(-minDeductions - 1, { amount: 500000 }, rates)).toEqual(500000)
-    })
-  })
+        // Act
+        const result = calculator.calculate()
+
+        // Assert
+        expect(result).toEqual(amount)
+      })
+
+      it('still returns 0 for a net income below minimal deductions', () => {
+        // Arrange
+        const calculator = new GrossIncomeCalculator(-minDeductions - 1, { amount }, rates)
+
+        // Act
+        const result = calculator.calculate()
+
+        // Assert
+        expect(result).toEqual(amount)
+      })
+    }
+  )
 
   describe('bad configuration', () => {
     it('throws exception when no result', () => {
+      // Arrange
       const incorrectRates = new Rates(
         { ...rates.incomeRates, credit: 1000000 },
         rates.socialRates,
         rates.healthRates
       )
 
-      expect(() => calculateGrossIncome(349090, { amount: 500000 }, incorrectRates)).toThrow()
+      const grossIncomeCalculator = new GrossIncomeCalculator(
+        349090,
+        { amount: 500000 },
+        incorrectRates
+      )
+
+      // Act
+      const act = () => grossIncomeCalculator.calculate()
+
+      // Assert
+      expect(act).toThrow()
     })
   })
 })
 
 // Only use this for thorough testing. It takes half an hour to run.
-xdescribe('carpet bombing', () => {
+xdescribe.each([[{ percentage: 0.6 }, { amount: 500000 }]])('carpet bombing', (expenses) => {
   it('successfully returns a value (no throw)', () => {
     for (let i = 0; i < 20000000; i++) {
-      expect(() => calculateGrossIncome(i, { percentage: 0.6 }, rates)).not.toThrow()
-      expect(() => calculateGrossIncome(i, { amount: 500000 }, rates)).not.toThrow()
+      // Arrange
+      let grossIncomeCalculator = new GrossIncomeCalculator(i, expenses, rates)
+
+      // Act
+      const act = () => grossIncomeCalculator.calculate()
+
+      // Assert
+      expect(act).not.toThrow()
     }
   })
 })
