@@ -4,4 +4,4 @@ export { default as calculateEmployeeNetSalary } from './employee/net-salary/net
 export { default as calculateEmployeeGrossSalary } from './employee/gross-salary/grossSalaryWithRules'
 
 export type { Rates as EmployeeRates } from './employee/types'
-export type { Rates as FreelancerRates }  from './freelancer/types'
+export type { IRates as FreelancerRates }  from './freelancer/types'

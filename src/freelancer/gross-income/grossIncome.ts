@@ -1,57 +1,85 @@
 import calculateGrossIncomeWithRules from './grossIncomeWithRules'
 import calculateNetIncome from '../net-income/netIncome'
-import { Expenses, NetIncomeResult, Rates } from '../types'
+import { Expenses } from '../types'
 import { areTechnicallyEqual } from '../../utils'
+import { Rates } from '../rates'
 
 /**
- * Calculates the gross income from the net income, expenses, and applicable rates doing multiple
- * rounds of calculations if necessary.
+ * Checks if the given setup is valid.
  *
- * # Multiple rounds of calculations
+ * @param rates
+ * @param netIncome
+ */
+function areParamsValid(rates: Rates, netIncome: number): boolean {
+  const { minDeductions } = rates
+
+  // The smallest possible net income is `-minDeductions`. This is the case when the gross income
+  // is zero, and you have to pay the minimal health and social insurance. Anything below this is not possible.
+  return netIncome >= -minDeductions
+}
+
+/**
+ * Verifies if the given gross income is correct.
+ *
+ * ## Rounding
+ *
+ * For the verification to work, the rounding must be disabled. Otherwise, the verification
+ * net income might not be equal to the original net income. The rounding would make multiple
+ * possible gross incomes to be correct because we would not know what the number was before the rounding.
+ *
+ * @param grossIncomeCandidate
+ * @param netIncome
+ * @param expenses
+ * @param rates
+ */
+function verifyGrossIncome(
+  grossIncomeCandidate: number,
+  netIncome: number,
+  expenses: Expenses,
+  rates: Rates
+): boolean {
+  const { netIncome: netIncomeCandidate } = calculateNetIncome(
+    grossIncomeCandidate,
+    expenses,
+    rates,
+    {
+      isRoundingEnabled: false,
+    }
+  )
+
+  return areTechnicallyEqual(netIncomeCandidate, netIncome)
+}
+
+/**
+ * Finds the correct gross income by applying different rules for the calculation.
+ *
+ * ## Multiple rounds of calculations
  *
  * The calculation of the gross income from the net income is not automatically reversible because within
  * the net income calculation there are several thresholds that can be reached:
  * - minimal health insurance base
  * - minimal social insurance base
  * - zero income tax
+ * - and more
  *
  * The thresholds can be applied to different numbers making the result the same and the original number
  * impossible to determine:
  *
  * > E.g. zero income tax can be reached with 15000 CZK profit, as well as 20000 CZK (because we subtract
- * > 30840 CZK credit). So we have 0 tax but do not know the original profit.
+ * > 30840 CZK credit). So we have 0 CZK tax but do not know the original profit.
  *
- * Therefore, we try the gross income calculation with different thresholds taken into account and verify
- * if the result is the same as the original net income.
+ * Therefore, we try to find the correct gross income by iterating with different thresholds
+ * taken into account. We verify if the result is the same as the original net income.
  *
- * The order of the thresholds is clear because of their values. The minimal health insurance base is the highest,
- * then the minimal social insurance base, and then the zero income tax.
- *
- * # Rounding
- *
- * For the calculation to work, the rounding must be disabled. Otherwise, the verification
- * checks would fail. Especially the rounding to hundreds in social were causing the issues.
- *
- * @param netIncome - The income after taxes and insurance contributions
- * @param expenses - Either a fixed amount or a flat-rate percentage
- * @param rates - The rates for income tax, social insurance, and health insurance
- * @returns The gross income, which is always zero or positive.
+ * @param netIncome
+ * @param expenses
+ * @param rates
  */
-function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rates): number {
-  const minDeductions =
-    rates.healthRates.minBase * rates.healthRates.rate +
-    rates.socialRates.minBase * rates.socialRates.rate
-
-  // The smallest possible net income is -minDeductions. This is the case when the gross income is zero
-  // and you have to pay the minimal health and social insurance. Anything below this is not possible.
-  if (netIncome < -minDeductions) {
-    if ('amount' in expenses) {
-      return expenses.amount || 0
-    }
-
-    return 0
-  }
-
+function findVerifiedGrossIncome(
+  netIncome: number,
+  expenses: Expenses,
+  rates: Rates
+): number | null {
   const ruleSets = [
     {},
     { isMinHealthBaseUsed: true },
@@ -65,19 +93,44 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
     { isMaxSocialBaseUsed: true, isHighRateIncomeTaxUsed: true, isMaxFlatRateUsed: true },
   ]
 
-  let grossIncome: number | null = null
-  let verification: NetIncomeResult | null = null
-
   for (const rules of ruleSets) {
-    grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, rules)
-    verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
+    const grossIncomeCandidate = calculateGrossIncomeWithRules(netIncome, expenses, rates, rules)
+    const isVerified = verifyGrossIncome(grossIncomeCandidate, netIncome, expenses, rates)
 
-    if (areTechnicallyEqual(verification.netIncome, netIncome)) {
-      return grossIncome
+    if (isVerified) {
+      return grossIncomeCandidate
     }
   }
 
-  throw new Error('Unable to calculate gross income: all approximations failed')
+  return null
+}
+
+/**
+ * Calculates the gross income from the net income, expenses, and applicable rates doing multiple
+ * rounds of calculations if necessary.
+ *
+ * @param netIncome
+ * @param expenses
+ * @param rates
+ *
+ * @returns The gross income, which is always zero or positive.
+ */
+function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rates): number {
+  if (!areParamsValid(rates, netIncome)) {
+    if (expenses.amount) {
+      return expenses.amount
+    }
+
+    return 0
+  }
+
+  const grossIncome = findVerifiedGrossIncome(netIncome, expenses, rates)
+
+  if (grossIncome === null) {
+    throw new Error('Unable to calculate gross income: all approximations failed')
+  }
+
+  return grossIncome
 }
 
 export default calculateGrossIncome

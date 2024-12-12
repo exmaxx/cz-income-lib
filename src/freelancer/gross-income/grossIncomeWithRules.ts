@@ -1,4 +1,4 @@
-import { Expenses, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
+import { Expenses, HealthInsuranceRates, IncomeRates, IRates, SocialInsuranceRates } from '../types'
 import { MAX_FLAT_RATE_AMOUNT } from '../constants'
 
 type HighIncomeRules = {
@@ -200,8 +200,8 @@ function getHealth(expenses: Expenses, healthRates: HealthInsuranceRates, rules:
 function calculateGrossIncomeWithRules(
   netIncome: number,
   expenses: Expenses,
-  rates: Rates,
-  rules: Rules = {}
+  rates: IRates,
+  rules: Rules
 ): number {
   const { incomeRates, socialRates, healthRates } = rates
 

@@ -1,12 +1,8 @@
 import calculateGrossIncome from './grossIncome'
 import calculateNetIncome from '../net-income/netIncome'
 import { rates } from '../fixtures'
-import { Expenses, Rates } from '../types'
-
-const minDeductions =
-  rates.healthRates.minBase * rates.healthRates.rate +
-  rates.socialRates.minBase * rates.socialRates.rate
-
+import { Expenses } from '../types'
+import { Rates } from '../rates'
 describe('expenses as a flat rate percentage', () => {
   it.each([
     { netIncome: 1200000, description: 'medium income' }, // 100 000 CZK / month
@@ -72,6 +68,8 @@ describe('expenses as a flat rate percentage', () => {
   })
 
   describe('zero net income', () => {
+    const { minDeductions } = rates
+
     it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
       'returns minimal deductions for a zero net income ($percentage rate)',
       ({ percentage }) => {
@@ -81,6 +79,8 @@ describe('expenses as a flat rate percentage', () => {
   })
 
   describe('negative net income', () => {
+    const { minDeductions } = rates
+
     it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
       'returns 0 for a net income equal to negative minimal deductions ($percentage rate)',
       ({ percentage }) => {
@@ -186,6 +186,8 @@ describe('expenses as real amount', () => {
   })
 
   describe('zero gross income', () => {
+    const { minDeductions } = rates
+
     it('returns 0 for a net income equal to minimal deductions', () => {
       expect(calculateGrossIncome(-minDeductions, { amount: 0 }, rates)).toEqual(0)
       expect(calculateGrossIncome(-minDeductions, { amount: 500000 }, rates)).toEqual(500000)
@@ -199,13 +201,11 @@ describe('expenses as real amount', () => {
 
   describe('bad configuration', () => {
     it('throws exception when no result', () => {
-      const incorrectRates: Rates = {
-        ...rates,
-        incomeRates: {
-          ...rates.incomeRates,
-          credit: 1000000,
-        },
-      }
+      const incorrectRates = new Rates(
+        { ...rates.incomeRates, credit: 1000000 },
+        rates.socialRates,
+        rates.healthRates
+      )
 
       expect(() => calculateGrossIncome(349090, { amount: 500000 }, incorrectRates)).toThrow()
     })

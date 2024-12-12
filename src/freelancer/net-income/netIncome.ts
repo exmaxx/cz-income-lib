@@ -4,10 +4,10 @@ import {
   IncomeRates,
   NetIncomeCalculationOptions,
   NetIncomeResult,
-  Rates,
   SocialInsuranceRates,
 } from '../types'
 import { MAX_FLAT_RATE_AMOUNT, Thresholds } from '../constants'
+import { Rates } from '../rates'
 
 /**
  * Rounds a number down to the nearest multiple of a given precision.

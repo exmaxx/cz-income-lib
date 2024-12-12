@@ -19,15 +19,14 @@ describe('estimates gross income from net income', () => {
           isRoundingEnabled: false,
         })
 
-        const result = calculateGrossIncomeWithRules(netIncome, expenses, rates)
+        const result = calculateGrossIncomeWithRules(netIncome, expenses, rates, {})
+
         expect(result).toBeCloseTo(gross)
       })
     })
 
     describe('low income', () => {
-      const minDeductions =
-        rates.healthRates.minBase * rates.healthRates.rate +
-        rates.socialRates.minBase * rates.socialRates.rate
+      const { minDeductions } = rates
 
       it('returns gross income equal to min deductions for a net income of 0', () => {
         expect(
@@ -97,7 +96,7 @@ describe('estimates gross income from net income', () => {
           isRoundingEnabled: false,
         })
 
-        const result = calculateGrossIncomeWithRules(netIncome, expenses, rates)
+        const result = calculateGrossIncomeWithRules(netIncome, expenses, rates, {})
 
         expect(result).toBeCloseTo(income)
       })
