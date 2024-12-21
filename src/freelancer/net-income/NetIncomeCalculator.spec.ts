@@ -1,11 +1,16 @@
-import calculateNetIncome from './netIncome'
 import { Expenses } from '../types'
 import { rates } from '../fixtures'
-import { MAX_FLAT_RATE_AMOUNT } from '../constants'
+import { MAX_FLAT_RATE_INCOME } from '../constants'
+import { NetIncomeResults } from './types'
+import NetIncomeCalculator from './NetIncomeCalculator'
+import PercentageExpensesWrapper from '../expenses/PercentageExpensesWrapper'
+import FixedExpensesWrapper from '../expenses/FixedExpensesWrapper'
 
 describe('calculator of net income and insurance', () => {
   const income = 1000000
   const highIncome = 10000000
+
+  const calculator = new NetIncomeCalculator(rates)
 
   describe('expenses as flat-rate', () => {
     const expenses: Expenses = {
@@ -13,25 +18,38 @@ describe('calculator of net income and insurance', () => {
       percentage: 0.4, // 40%
     }
 
+    // TODO: Keep only this and remove `expenses`?
+    const percentageExpensesWrapper = new PercentageExpensesWrapper(expenses.percentage)
+
     it('calculates net income and other values', () => {
-      expect(calculateNetIncome(income, expenses, rates)).toEqual({
+      // Arrange
+      const expectedResult: NetIncomeResults = {
+        highRateTaxBase: 0,
+        lowRateTaxBase: 600000,
         health: 40500,
         healthAssessmentBase: 300000,
         incomeTax: 59160,
         incomeTaxBase: 600000,
-        incomeTaxWithHighRate: 0,
-        incomeTaxWithLowRate: 90000,
+        highRateIncomeTax: 0,
+        lowRateIncomeTax: 90000,
         netIncome: 812740,
+        profit: 600000,
         social: 87600,
         socialAssessmentBase: 300000,
-        reachedThresholds: [],
-      })
+        taxableProfit: 600000,
+      }
+
+      // Act
+      const result = calculator.calculate(income, percentageExpensesWrapper)
+
+      // Assert
+      expect(result).toStrictEqual<NetIncomeResults>(expectedResult)
     })
 
     it('works with higher tax rate for high income', () => {
       const { rate, credit, nonTaxable, highRate, highRateThreshold } = rates.incomeRates
 
-      const maxFlatRateAmount = MAX_FLAT_RATE_AMOUNT * expenses.percentage
+      const maxFlatRateAmount = MAX_FLAT_RATE_INCOME * expenses.percentage
 
       const taxBase = highIncome - maxFlatRateAmount - nonTaxable
       const highTaxAmount = Math.max(0, taxBase - highRateThreshold)
@@ -39,16 +57,14 @@ describe('calculator of net income and insurance', () => {
 
       const expectedIncomeTax = Math.ceil(lowTaxAmount * rate + highTaxAmount * highRate - credit)
 
-      const { incomeTax, incomeTaxWithLowRate, incomeTaxWithHighRate, reachedThresholds } =
-        calculateNetIncome(highIncome, expenses, rates)
-
-      expect(incomeTax).toEqual(expectedIncomeTax)
-      expect(incomeTaxWithLowRate).toEqual(lowTaxAmount * rate)
-      expect(incomeTaxWithHighRate).toEqual(highTaxAmount * highRate)
-
-      expect(reachedThresholds).toEqual(
-        expect.arrayContaining(['MAX_FLAT_RATE', 'HIGH_TAX', 'MAX_BASE_SOCIAL'])
+      const { incomeTax, lowRateIncomeTax, highRateIncomeTax } = calculator.calculate(
+        highIncome,
+        percentageExpensesWrapper
       )
+
+      expect(incomeTax).toBe(expectedIncomeTax)
+      expect(lowRateIncomeTax).toBe(lowTaxAmount * rate)
+      expect(highRateIncomeTax).toBe(highTaxAmount * highRate)
     })
 
     xit('works when below zero', () => {
@@ -64,24 +80,34 @@ describe('calculator of net income and insurance', () => {
 
   describe('expenses as real amount', () => {
     it('calculates net income and other values', () => {
+      // Arrange
       const expenses: Expenses = {
         amount: 500000,
       }
 
-      const netIncomeDetails = calculateNetIncome(income, expenses, rates)
-
-      expect(netIncomeDetails).toEqual({
+      const expectedResult: NetIncomeResults = {
+        highRateTaxBase: 0,
+        lowRateTaxBase: 500000,
         health: 33750,
         healthAssessmentBase: 250000,
         incomeTax: 44160,
         incomeTaxBase: 500000,
-        incomeTaxWithHighRate: 0,
-        incomeTaxWithLowRate: 75000,
+        highRateIncomeTax: 0,
+        lowRateIncomeTax: 75000,
         netIncome: 349090,
-        reachedThresholds: [],
+        profit: 500000,
         social: 73000,
         socialAssessmentBase: 250000,
-      })
+        taxableProfit: 500000,
+      }
+
+      const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
+
+      // Act
+      const netIncomeDetails = calculator.calculate(income, fixedExpensesWrapper)
+
+      // Assert
+      expect(netIncomeDetails).toStrictEqual<NetIncomeResults>(expectedResult)
     })
 
     it('calculates income tax as zero when negative', () => {
@@ -89,10 +115,11 @@ describe('calculator of net income and insurance', () => {
         amount: 800000,
       }
 
-      const { incomeTax, reachedThresholds } = calculateNetIncome(income, expenses, rates)
+      const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-      expect(incomeTax).toEqual(0)
-      expect(reachedThresholds).toContain('ZERO_TAX')
+      const { incomeTax } = calculator.calculate(income, fixedExpensesWrapper)
+
+      expect(incomeTax).toBe(0)
     })
 
     it('sets social assessment base to minimum if below threshold', () => {
@@ -100,14 +127,11 @@ describe('calculator of net income and insurance', () => {
         amount: 900000,
       }
 
-      const { socialAssessmentBase, reachedThresholds } = calculateNetIncome(
-        income,
-        expenses,
-        rates
-      )
+      const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-      expect(socialAssessmentBase).toEqual(rates.socialRates.minBase)
-      expect(reachedThresholds).toContain('MIN_BASE_SOCIAL')
+      const { socialAssessmentBase } = calculator.calculate(income, fixedExpensesWrapper)
+
+      expect(socialAssessmentBase).toBe(rates.socialRates.minBase)
     })
 
     // same for social max base
@@ -116,14 +140,11 @@ describe('calculator of net income and insurance', () => {
         amount: 0,
       }
 
-      const { socialAssessmentBase, reachedThresholds } = calculateNetIncome(
-        4000000,
-        expenses,
-        rates
-      )
+      const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-      expect(socialAssessmentBase).toEqual(rates.socialRates.maxBase)
-      expect(reachedThresholds).toContain('MAX_BASE_SOCIAL')
+      const { socialAssessmentBase } = calculator.calculate(4000000, fixedExpensesWrapper)
+
+      expect(socialAssessmentBase).toBe(rates.socialRates.maxBase)
     })
 
     it('sets health assessment base to minimum if below threshold', () => {
@@ -131,14 +152,11 @@ describe('calculator of net income and insurance', () => {
         amount: 900000,
       }
 
-      const { healthAssessmentBase, reachedThresholds } = calculateNetIncome(
-        income,
-        expenses,
-        rates
-      )
+      const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-      expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
-      expect(reachedThresholds).toContain('MIN_BASE_HEALTH')
+      const { healthAssessmentBase } = calculator.calculate(income, fixedExpensesWrapper)
+
+      expect(healthAssessmentBase).toBe(rates.healthRates.minBase)
     })
 
     it('works with higher tax rate for high income', () => {
@@ -148,20 +166,22 @@ describe('calculator of net income and insurance', () => {
         amount: 3000000,
       }
 
+      const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
+
       const taxBase = highIncome - expenses.amount - nonTaxable
       const highTaxAmount = Math.max(0, taxBase - highRateThreshold)
       const lowTaxAmount = taxBase - highTaxAmount
 
       const expectedIncomeTax = Math.ceil(lowTaxAmount * rate + highTaxAmount * highRate - credit)
 
-      const { incomeTax, incomeTaxWithLowRate, incomeTaxWithHighRate, reachedThresholds } =
-        calculateNetIncome(highIncome, expenses, rates)
+      const { incomeTax, lowRateIncomeTax, highRateIncomeTax } = calculator.calculate(
+        highIncome,
+        fixedExpensesWrapper
+      )
 
-      expect(incomeTax).toEqual(expectedIncomeTax)
-      expect(incomeTaxWithLowRate).toEqual(lowTaxAmount * rate)
-      expect(incomeTaxWithHighRate).toEqual(highTaxAmount * highRate)
-
-      expect(reachedThresholds).toEqual(expect.arrayContaining(['HIGH_TAX', 'MAX_BASE_SOCIAL']))
+      expect(incomeTax).toBe(expectedIncomeTax)
+      expect(lowRateIncomeTax).toBe(lowTaxAmount * rate)
+      expect(highRateIncomeTax).toBe(highTaxAmount * highRate)
     })
 
     xit('works when net income below zero', () => {
@@ -180,7 +200,9 @@ describe('calculator of net income and insurance', () => {
           amount: -1,
         }
 
-        expect(() => calculateNetIncome(income, expenses, rates)).toThrow()
+        const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
+
+        expect(() => calculator.calculate(income, fixedExpensesWrapper)).toThrow()
       })
 
       it('throws does not throw when expenses zero', () => {
@@ -188,7 +210,9 @@ describe('calculator of net income and insurance', () => {
           amount: 0,
         }
 
-        expect(() => calculateNetIncome(income, expenses, rates)).not.toThrow()
+        const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
+
+        expect(() => calculator.calculate(income, fixedExpensesWrapper)).not.toThrow()
       })
 
       it('throws does not throw when expenses positive', () => {
@@ -196,7 +220,9 @@ describe('calculator of net income and insurance', () => {
           amount: 1,
         }
 
-        expect(() => calculateNetIncome(income, expenses, rates)).not.toThrow()
+        const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
+
+        expect(() => calculator.calculate(income, fixedExpensesWrapper)).not.toThrow()
       })
     })
   })

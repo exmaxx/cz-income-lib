@@ -8,3 +8,12 @@
 export function areTechnicallyEqual(a: number, b: number): boolean {
   return Math.abs(a - b) <= 0.0000001
 }
+
+/**
+ * Deep clones an object. Omits anything that is not supported by JSON (e.g. functions).
+ *
+ * @param obj
+ */
+export function deepCloneSimple<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
+}

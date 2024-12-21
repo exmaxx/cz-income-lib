@@ -49,54 +49,52 @@ export interface Rates {
 }
 
 /**
+ * Expenses defined by an exact amount.
+ *
+ * Note: This approach, using `never`, has advantages:
+ *   1. It allows for destructuring
+ *   2. It enables the use of `expenses.amount` instead of `expenses in expenses` in `if` statements
+ *
+ * One disadvantage is that when `expenses.percentage` is `true`, `expenses.amount` can still be `undefined` and
+ * must be checked.
+ */
+export type ExactExpenses = { amount: number; percentage?: never }
+
+/**
+ * Expenses defined by a percentage of the gross income.
+ */
+export type PercentageExpenses = { amount?: never; percentage: number }
+
+/**
  * Expenses can be either a flat-rate percentage or a fixed amount.
  *
  * @example
  * { amount: 1000000 } // fixed amount, meaning 1000000 CZK
  * { rate: 0.6 } // flat-rate percentage, meaning 60%
  */
-export type Expenses =
-  | { amount: number; percentage?: never }
-  | { amount?: never; percentage: number }
+export type Expenses = ExactExpenses | PercentageExpenses
 
 /**
- * Options for the net income calculation.
+ * These coefficients will be passed to the grand equation of the gross income calculation (i.e.
+ * reverse of the net income formula).
+ *
+ * Income adjustments at the top of the fraction.
+ * Income multiplier at the bottom of the fraction.
  */
-export interface NetIncomeCalculationOptions {
-  /** Is:
-   * - `true` - for normal calculation; the law requires some roundings (up, down, some to single digit,
-   *   some to hundreds, etc.)
-   * - `false` - for double-checking previously calculated gross income (using the [grossIncome](./gross-income/grossIncome.ts) function),
-   *   I need to disable rounding because the gross income calculation (which reverts net income calculation)
-   *   is not able to guess what roundings were used in the original net income calculation
+export interface CalculationModifiers {
+  /**
+   * The amount that is originally subtracted from the gross income when calculation the net income.
+   *
+   * This is used at the grand equation for the gross income calculation. All the gross income
+   * adjustments are added or subtracted from the net income.
+   *
+   * Any fixed values (e.g. real expenses) are added here.
    */
-  isRoundingEnabled?: boolean
-}
-
-/**
- * The result of the net income calculation.
- */
-export interface NetIncomeResult {
-  health: number;
-  healthAssessmentBase: number;
-  incomeTax: number;
-  incomeTaxBase: number;
-  incomeTaxWithHighRate: number;
-  incomeTaxWithLowRate: number;
-  netIncome: number;
-  reachedThresholds: string[];
-  social: number;
-  socialAssessmentBase: number;
-}
-
-/**
- * These coefficients will be passed to the grand equation.
- */
-export type CalculationCoefficients = {
-  /** The multiplier that multiplies the gross income. This is modified by flat-rate expenses (by the percentage). */
-  grossIncomeMultiple: number
-
-  // TODO: Is this always negative? Rename to grossIncomeReduction?
-  /** The amount that is subtracted from the gross income. This is modified by fixed expenses. */
   grossIncomeAdjustment: number
+
+  /** The multiplier of the gross income in the original calculation of the net income.
+   *
+   * All the variable multipliers of the gross income belong here (e.g. flat-rate percentage value).
+   */
+  grossIncomeMultiplier: number
 }

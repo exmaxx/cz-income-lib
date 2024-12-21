@@ -3,7 +3,8 @@
 The calculation is the **reverse of net income formula** with several things taken into account:
 
 1. The boundary conditions - e.g. limit for social insurance, etc. - we do not know which of the boundaries were applied during
-the net income calculation, so we need to **iterate the formula** with each boundary condition until we get the correct gross income.
+   the net income calculation, so we need to **iterate the formula** with each boundary condition until we get the
+   correct gross income.
 
 2. The number roundings - roundings are also irreversible so we sometimes receive **a slightly different gross income** than the original one.
 
@@ -29,15 +30,15 @@ And after the rearrangement:
 
 1. for flat-rate percentage expenses:
 
-    > $$
-    gross = \frac{net - taxRate * nontaxable - credit}{1 - ((1 - expensesRate) * (taxRate + assessmentRate * (socialRate + healthRate))}
-    $$
+   > $$
+   gross = \frac{net - taxRate * nontaxable - credit}{1 - ((1 - expensesRate) * (taxRate + assessmentRate * (socialRate + healthRate))}
+   $$
 
 2. for fixed expenses:
 
-    > $$
-    gross = \frac{net - taxRate * nontaxable - credit}{1 - (taxRate + assessmentRate * (socialRate + healthRate))} + expenses
-    $$
+   > $$
+   gross = \frac{net - taxRate * nontaxable - credit}{1 - (taxRate + assessmentRate * (socialRate + healthRate))} + expenses
+   $$
 
 You see that the formula looks quite complex.
 
@@ -51,19 +52,20 @@ And then the formula becomes:
 
 1. for flat-rate percentage expenses:
 
-    > $$
-    gross = \frac{net - taxRate * nontaxable - credit} {1 - (1 - expensesRate) * ratesCombined}
-    $$
+   > $$
+   gross = \frac{net - taxRate * nontaxable - credit} {1 - (1 - expensesRate) * ratesCombined}
+   $$
 
 2. for fixed expenses:
 
-    > $$
-    gross = \frac{net - taxRate * nontaxable - credit}{1 - ratesCombined} + expenses
-    $$
+   > $$
+   gross = \frac{net - taxRate * nontaxable - credit}{1 - ratesCombined} + expenses
+   $$
 
 ## Dealing with boundary conditions
 
 By boundary conditions, we mean:
+
 - minimum social insurance base
 - minimum health insurance bases
 - zero income tax
@@ -72,7 +74,8 @@ By boundary conditions, we mean:
 > 30840 CZK credit). So we have 0 tax but do not know the original profit.
 
 To be able to calculate the gross income, we need to iterate the formula with the boundary conditions. In each iteration:
-1. verify the gross income - by calculating the net income from it and comparing it to the original net income. 
+
+1. verify the gross income - by calculating the net income from it and comparing it to the original net income.
 2. add boundary conditions
 3. calculate the gross income
 
@@ -87,6 +90,7 @@ We use the top of the fraction as `top` variable and the bottom as `bottom` vari
 variable for the sum of the rates.
 
 The boundary conditions are applied by boolean flags:
+
 - `isMinHealthBaseUsed`
 - `isMinSocialBaseUsed`
 - `isIncomeTaxZero`
