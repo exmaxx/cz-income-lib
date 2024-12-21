@@ -1,30 +1,13 @@
-import { Expenses, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
+import {
+  CalculationCoefficients,
+  Expenses,
+  HealthInsuranceRates,
+  IncomeRates,
+  Rates,
+  SocialInsuranceRates,
+} from '../types'
+import { ThresholdKey, Thresholds } from '../enums'
 import { MAX_FLAT_RATE_AMOUNT } from '../constants'
-
-type HighIncomeRules = {
-  isHighRateIncomeTaxUsed?: boolean
-  isIncomeTaxZero?: never
-  isMaxFlatRateUsed?: boolean
-  isMaxSocialBaseUsed?: boolean
-  isMinHealthBaseUsed?: never
-  isMinSocialBaseUsed?: never
-}
-
-type LowIncomeRules = {
-  isHighRateIncomeTaxUsed?: never
-  isIncomeTaxZero?: boolean
-  isMaxFlatRateUsed?: never
-  isMaxSocialBaseUsed?: never
-  isMinHealthBaseUsed?: boolean
-  isMinSocialBaseUsed?: boolean
-}
-
-/**
- * Rules for the gross income calculation.
- *
- * Some rules are mutually exclusive. You either aim for low income or high income and use corresponding rules.
- */
-type Rules = HighIncomeRules | LowIncomeRules
 
 /**
  * Calculates the real profit from the expenses. In case of flat-rate percentage expenses, the real profit
@@ -32,7 +15,7 @@ type Rules = HighIncomeRules | LowIncomeRules
  *
  * @param expenses
  */
-function getRealProfit(expenses: Expenses) {
+function getRealProfit(expenses: Expenses): CalculationCoefficients {
   const { amount } = expenses
 
   let grossIncomeMultiple = 1
@@ -53,15 +36,18 @@ function getRealProfit(expenses: Expenses) {
  * or a flat-rate percentage.
  *
  * @param expenses
- * @param isMaxFlatRateUsed
+ * @param thresholds
  */
-function getVirtualProfit(expenses: Expenses, { isMaxFlatRateUsed }: Rules = {}) {
+function getVirtualProfit(expenses: Expenses, thresholds: ThresholdKey[]): CalculationCoefficients {
   const { amount, percentage } = expenses
+  const { MAX_FLAT_RATE } = Thresholds
 
   let grossIncomeMultiplier = 1
   let grossIncomeAdjustment = 0
 
   if (percentage) {
+    const isMaxFlatRateUsed = thresholds.includes(MAX_FLAT_RATE)
+
     if (isMaxFlatRateUsed) {
       grossIncomeAdjustment = -MAX_FLAT_RATE_AMOUNT * percentage
     } else {
@@ -77,13 +63,20 @@ function getVirtualProfit(expenses: Expenses, { isMaxFlatRateUsed }: Rules = {})
   }
 }
 
-function getTax(expenses: Expenses, incomeRates: IncomeRates, rules: Rules = {}) {
-  const { isIncomeTaxZero, isHighRateIncomeTaxUsed } = rules
+function getTax(
+  expenses: Expenses,
+  incomeRates: IncomeRates,
+  thresholds: ThresholdKey[]
+): CalculationCoefficients {
+  const { HIGH_TAX, ZERO_TAX } = Thresholds
 
   let grossIncomeMultiple = 0
   let grossIncomeAdjustment = 0
 
-  const profit = getVirtualProfit(expenses, rules)
+  const isIncomeTaxZero = thresholds.includes(ZERO_TAX)
+  const isHighRateIncomeTaxUsed = thresholds.includes(HIGH_TAX)
+
+  const profit = getVirtualProfit(expenses, thresholds)
 
   if (!isIncomeTaxZero) {
     grossIncomeMultiple = profit.grossIncomeMultiple * incomeRates.rate
@@ -118,13 +111,20 @@ function getTax(expenses: Expenses, incomeRates: IncomeRates, rules: Rules = {})
   }
 }
 
-function getSocial(expenses: Expenses, socialRates: SocialInsuranceRates, rules: Rules = {}) {
-  const { isMinSocialBaseUsed, isMaxSocialBaseUsed } = rules
+function getSocial(
+  expenses: Expenses,
+  socialRates: SocialInsuranceRates,
+  thresholds: ThresholdKey[]
+): CalculationCoefficients {
+  const { MAX_BASE_SOCIAL, MIN_BASE_SOCIAL } = Thresholds
 
   let grossIncomeMultiple = 0
   let grossIncomeAdjustment
 
-  const profit = getVirtualProfit(expenses, rules)
+  const isMinSocialBaseUsed = thresholds.includes(MIN_BASE_SOCIAL)
+  const isMaxSocialBaseUsed = thresholds.includes(MAX_BASE_SOCIAL)
+
+  const profit = getVirtualProfit(expenses, thresholds)
 
   if (isMinSocialBaseUsed) {
     grossIncomeAdjustment = socialRates.minBase * socialRates.rate
@@ -142,13 +142,19 @@ function getSocial(expenses: Expenses, socialRates: SocialInsuranceRates, rules:
   }
 }
 
-function getHealth(expenses: Expenses, healthRates: HealthInsuranceRates, rules: Rules = {}) {
-  const { isMinHealthBaseUsed } = rules
+function getHealth(
+  expenses: Expenses,
+  healthRates: HealthInsuranceRates,
+  thresholds: ThresholdKey[]
+): CalculationCoefficients {
+  const { MIN_BASE_HEALTH } = Thresholds
 
   let grossIncomeMultiple = 0
   let grossIncomeAdjustment
 
-  const profit = getVirtualProfit(expenses, rules)
+  const isMinHealthBaseUsed = thresholds.includes(MIN_BASE_HEALTH)
+
+  const profit = getVirtualProfit(expenses, thresholds)
 
   if (isMinHealthBaseUsed) {
     grossIncomeAdjustment = healthRates.minBase * healthRates.rate
@@ -193,7 +199,7 @@ function getHealth(expenses: Expenses, healthRates: HealthInsuranceRates, rules:
  * @param netIncome - The income after taxes and insurance contributions
  * @param expenses - Either a fixed amount or a flat-rate percentage
  * @param rates - The rates for income tax, social insurance, and health insurance
- * @param rules - Use the rules when you know that the net income was calculated with some thresholds
+ * @param thresholds - The thresholds to use in the calculation
  *
  * @returns The gross income
  */
@@ -201,29 +207,29 @@ function calculateGrossIncomeWithRules(
   netIncome: number,
   expenses: Expenses,
   rates: Rates,
-  rules: Rules = {}
+  thresholds: ThresholdKey[] = []
 ): number {
   const { incomeRates, socialRates, healthRates } = rates
 
-  const tax = getTax(expenses, incomeRates, rules)
+  const tax = getTax(expenses, incomeRates, thresholds)
   const profit = getRealProfit(expenses)
-  const social = getSocial(expenses, socialRates, rules)
-  const health = getHealth(expenses, healthRates, rules)
+  const social = getSocial(expenses, socialRates, thresholds)
+  const health = getHealth(expenses, healthRates, thresholds)
 
-  const top =
+  const fractionTop =
     netIncome -
     (profit.grossIncomeAdjustment -
       tax.grossIncomeAdjustment -
       social.grossIncomeAdjustment -
       health.grossIncomeAdjustment)
 
-  const bottom =
+  const fractionBottom =
     profit.grossIncomeMultiple -
     tax.grossIncomeMultiple -
     social.grossIncomeMultiple -
     health.grossIncomeMultiple
 
-  return top / bottom
+  return fractionTop / fractionBottom
 }
 
 export default calculateGrossIncomeWithRules

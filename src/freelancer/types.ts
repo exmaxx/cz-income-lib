@@ -88,3 +88,15 @@ export interface NetIncomeResult {
   social: number;
   socialAssessmentBase: number;
 }
+
+/**
+ * These coefficients will be passed to the grand equation.
+ */
+export type CalculationCoefficients = {
+  /** The multiplier that multiplies the gross income. This is modified by flat-rate expenses (by the percentage). */
+  grossIncomeMultiple: number
+
+  // TODO: Is this always negative? Rename to grossIncomeReduction?
+  /** The amount that is subtracted from the gross income. This is modified by fixed expenses. */
+  grossIncomeAdjustment: number
+}

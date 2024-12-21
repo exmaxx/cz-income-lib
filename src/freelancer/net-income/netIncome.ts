@@ -7,7 +7,8 @@ import {
   Rates,
   SocialInsuranceRates,
 } from '../types'
-import { MAX_FLAT_RATE_AMOUNT, Thresholds } from '../constants'
+import { MAX_FLAT_RATE_AMOUNT } from '../constants'
+import { ThresholdKey, Thresholds } from '../enums'
 
 /**
  * Rounds a number down to the nearest multiple of a given precision.
@@ -25,16 +26,18 @@ function calculateIncomeTaxBase(
   incomeRates: IncomeRates,
   { isRoundingEnabled }: NetIncomeCalculationOptions
 ) {
+  const { MAX_FLAT_RATE, ZERO_TAX_BASE } = Thresholds
+
   let profit: number
 
-  const reachedThresholds: string[] = []
+  const reachedThresholds: ThresholdKey[] = []
 
   if ('percentage' in expenses) {
     const percentage = expenses.percentage || 0
     const flatRateAmount = Math.min(income * percentage, MAX_FLAT_RATE_AMOUNT * percentage)
 
     if (flatRateAmount === MAX_FLAT_RATE_AMOUNT * percentage) {
-      reachedThresholds.push(Thresholds.MAX_FLAT_RATE)
+      reachedThresholds.push(MAX_FLAT_RATE)
     }
 
     profit = income - flatRateAmount
@@ -45,7 +48,7 @@ function calculateIncomeTaxBase(
   const taxableProfit = profit - incomeRates.nonTaxable
 
   if (taxableProfit <= 0) {
-    reachedThresholds.push(Thresholds.ZERO_TAX_BASE)
+    reachedThresholds.push(ZERO_TAX_BASE)
 
     return {
       incomeTaxBase: 0,
@@ -69,6 +72,7 @@ function calculateIncomeTax(
 ) {
   const { credit, rate, highRate, highRateThreshold } = incomeRates
   const { isRoundingEnabled } = options
+  const { ZERO_TAX, HIGH_TAX } = Thresholds
 
   const highTaxAmount = Math.max(0, taxBase - highRateThreshold)
   const lowTaxAmount = taxBase - highTaxAmount
@@ -78,14 +82,14 @@ function calculateIncomeTax(
 
   const incomeTax = incomeTaxWithLowRate + incomeTaxWithHighRate - credit
 
-  const reachedThresholds: string[] = []
+  const reachedThresholds: ThresholdKey[] = []
 
   if (highTaxAmount > 0) {
-    reachedThresholds.push(Thresholds.HIGH_TAX)
+    reachedThresholds.push(HIGH_TAX)
   }
 
   if (incomeTax <= 0) {
-    reachedThresholds.push(Thresholds.ZERO_TAX)
+    reachedThresholds.push(ZERO_TAX)
 
     return {
       incomeTax: 0,
@@ -111,21 +115,23 @@ function calculateSocial(
   socialRates: SocialInsuranceRates,
   { isRoundingEnabled }: NetIncomeCalculationOptions
 ) {
+  const { MIN_BASE_SOCIAL, MAX_BASE_SOCIAL } = Thresholds
+
   let socialAssessmentBase = Math.max(
     incomeTaxBase * socialRates.basePercentage,
     socialRates.minBase
   )
 
-  const reachedThresholds: string[] = []
+  const reachedThresholds: ThresholdKey[] = []
 
   if (socialAssessmentBase === socialRates.minBase) {
-    reachedThresholds.push(Thresholds.MIN_BASE_SOCIAL)
+    reachedThresholds.push(MIN_BASE_SOCIAL)
   }
 
   socialAssessmentBase = Math.min(socialAssessmentBase, socialRates.maxBase)
 
   if (socialAssessmentBase === socialRates.maxBase) {
-    reachedThresholds.push(Thresholds.MAX_BASE_SOCIAL)
+    reachedThresholds.push(MAX_BASE_SOCIAL)
   }
 
   const social = socialAssessmentBase * socialRates.rate
@@ -145,15 +151,17 @@ function calculateHealth(
   healthRates: HealthInsuranceRates,
   { isRoundingEnabled }: NetIncomeCalculationOptions
 ) {
+  const { MIN_BASE_HEALTH } = Thresholds
+
   const healthAssessmentBase = Math.max(
     incomeTaxBase * healthRates.basePercentage,
     healthRates.minBase
   )
 
-  const reachedThresholds: string[] = []
+  const reachedThresholds: ThresholdKey[] = []
 
   if (healthAssessmentBase === healthRates.minBase) {
-    reachedThresholds.push(Thresholds.MIN_BASE_HEALTH)
+    reachedThresholds.push(MIN_BASE_HEALTH)
   }
 
   const health = healthAssessmentBase * healthRates.rate

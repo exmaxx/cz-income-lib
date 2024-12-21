@@ -2,6 +2,7 @@ import calculateGrossIncomeWithRules from './grossIncomeWithRules'
 import calculateNetIncome from '../net-income/netIncome'
 import { Expenses, NetIncomeResult, Rates } from '../types'
 import { areTechnicallyEqual } from '../../utils'
+import { ThresholdKey, Thresholds } from '../enums'
 
 /**
  * Calculates the gross income from the net income, expenses, and applicable rates doing multiple
@@ -52,24 +53,27 @@ function calculateGrossIncome(netIncome: number, expenses: Expenses, rates: Rate
     return 0
   }
 
-  const ruleSets = [
-    {},
-    { isMinHealthBaseUsed: true },
-    { isMinHealthBaseUsed: true, isMinSocialBaseUsed: true },
-    { isMinHealthBaseUsed: true, isMinSocialBaseUsed: true, isIncomeTaxZero: true },
-    { isMaxFlatRateUsed: true },
-    { isMaxSocialBaseUsed: true },
-    { isHighRateIncomeTaxUsed: true },
-    { isMaxSocialBaseUsed: true, isHighRateIncomeTaxUsed: true },
-    { isMaxFlatRateUsed: true, isHighRateIncomeTaxUsed: true },
-    { isMaxSocialBaseUsed: true, isHighRateIncomeTaxUsed: true, isMaxFlatRateUsed: true },
+  const { MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX, MAX_FLAT_RATE, MAX_BASE_SOCIAL, HIGH_TAX } =
+    Thresholds
+
+  const thresholdSets: ThresholdKey[][] = [
+    [],
+    [MIN_BASE_HEALTH],
+    [MIN_BASE_HEALTH, MIN_BASE_SOCIAL],
+    [MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX],
+    [MAX_FLAT_RATE],
+    [MAX_BASE_SOCIAL],
+    [HIGH_TAX],
+    [MAX_BASE_SOCIAL, HIGH_TAX],
+    [MAX_FLAT_RATE, HIGH_TAX],
+    [MAX_BASE_SOCIAL, HIGH_TAX, MAX_FLAT_RATE],
   ]
 
   let grossIncome: number | null = null
   let verification: NetIncomeResult | null = null
 
-  for (const rules of ruleSets) {
-    grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, rules)
+  for (const thresholds of thresholdSets) {
+    grossIncome = calculateGrossIncomeWithRules(netIncome, expenses, rates, thresholds)
     verification = calculateNetIncome(grossIncome, expenses, rates, { isRoundingEnabled: false })
 
     if (areTechnicallyEqual(verification.netIncome, netIncome)) {
