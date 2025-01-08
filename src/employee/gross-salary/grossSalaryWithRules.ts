@@ -46,11 +46,7 @@ function getSocialRates(socialRates: SocialInsuranceRates, rules: Rules) {
 function getRatesCombined(rates: Rates, rules: Rules) {
   const { incomeRates, socialRates, healthRates } = rates
 
-  return (
-    getTaxRates(incomeRates, rules) +
-    getSocialRates(socialRates, rules) +
-    getHealthRates(healthRates, rules)
-  )
+  return getTaxRates(incomeRates, rules) + getSocialRates(socialRates, rules) + getHealthRates(healthRates, rules)
 }
 
 function getTaxAdjustments(rules: Rules, incomeRates: IncomeRates) {

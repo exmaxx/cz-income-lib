@@ -45,6 +45,4 @@ export interface ProfitCoefficientsGetter {
 
 export type NetIncomeExpensesProvider = ExpensesValidator & ProfitGetter & RealExpensesGetter
 
-export type ExpensesWrapper = NetIncomeExpensesProvider &
-  RealExpensesGetter &
-  ProfitCoefficientsGetter
+export type ExpensesWrapper = NetIncomeExpensesProvider & RealExpensesGetter & ProfitCoefficientsGetter

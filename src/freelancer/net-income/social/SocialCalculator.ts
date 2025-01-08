@@ -8,14 +8,8 @@ export class SocialCalculator {
   /**
    * Calculates the social insurance contributions based on the income tax base and the social rates.
    */
-  calc(
-    incomeTaxBase: number,
-    { isRoundingEnabled }: NetIncomeCalculationOptions
-  ): NetIncomeSocialResults {
-    const socialAssessmentBase = this.calculateSocialAssessmentBase(
-      incomeTaxBase,
-      this._socialRates
-    )
+  calc(incomeTaxBase: number, { isRoundingEnabled }: NetIncomeCalculationOptions): NetIncomeSocialResults {
+    const socialAssessmentBase = this.calculateSocialAssessmentBase(incomeTaxBase, this._socialRates)
 
     const social = socialAssessmentBase * this._socialRates.rate
 

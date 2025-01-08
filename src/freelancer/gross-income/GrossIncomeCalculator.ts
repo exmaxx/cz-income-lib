@@ -15,8 +15,7 @@ class GrossIncomeCalculator {
    */
   constructor(rates: Rates) {
     this.minDeductions =
-      rates.healthRates.minBase * rates.healthRates.rate +
-      rates.socialRates.minBase * rates.socialRates.rate
+      rates.healthRates.minBase * rates.healthRates.rate + rates.socialRates.minBase * rates.socialRates.rate
 
     this.grossWithRulesCalculator = new GrossIncomeCalculatorWithThresholds(rates)
     this.netCalculator = new NetIncomeCalculator(rates)
@@ -71,8 +70,7 @@ class GrossIncomeCalculator {
    * Returns the possible threshold sets.
    */
   private getThresholdSets(): ThresholdKey[][] {
-    const { MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX, MAX_FLAT_RATE, MAX_BASE_SOCIAL, HIGH_TAX } =
-      Thresholds
+    const { MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX, MAX_FLAT_RATE, MAX_BASE_SOCIAL, HIGH_TAX } = Thresholds
 
     return [
       [],
@@ -121,16 +119,8 @@ class GrossIncomeCalculator {
    * @param thresholds
    * @private
    */
-  private calculateWithThresholdSet(
-    netIncome: number,
-    expensesWrapper: ExpensesWrapper,
-    thresholds: ThresholdKey[]
-  ) {
-    const grossIncome = this.grossWithRulesCalculator.calculate(
-      netIncome,
-      expensesWrapper,
-      thresholds
-    )
+  private calculateWithThresholdSet(netIncome: number, expensesWrapper: ExpensesWrapper, thresholds: ThresholdKey[]) {
+    const grossIncome = this.grossWithRulesCalculator.calculate(netIncome, expensesWrapper, thresholds)
 
     if (this.isGrossIncomeCorrect(grossIncome, netIncome, expensesWrapper)) {
       return grossIncome
@@ -159,18 +149,10 @@ class GrossIncomeCalculator {
    * @param netIncome
    * @param expensesWrapper
    */
-  private isGrossIncomeCorrect(
-    grossIncome: number,
-    netIncome: number,
-    expensesWrapper: ExpensesWrapper
-  ): boolean {
-    const { netIncome: netIncomeForVerification } = this.netCalculator.calculate(
-      grossIncome,
-      expensesWrapper,
-      {
-        isRoundingEnabled: false,
-      }
-    )
+  private isGrossIncomeCorrect(grossIncome: number, netIncome: number, expensesWrapper: ExpensesWrapper): boolean {
+    const { netIncome: netIncomeForVerification } = this.netCalculator.calculate(grossIncome, expensesWrapper, {
+      isRoundingEnabled: false,
+    })
 
     return areTechnicallyEqual(netIncomeForVerification, netIncome)
   }

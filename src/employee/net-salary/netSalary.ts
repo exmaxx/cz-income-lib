@@ -1,10 +1,4 @@
-import {
-  HealthInsuranceRates,
-  IncomeRates,
-  NetIncomeCalculationOptions,
-  Rates,
-  SocialInsuranceRates,
-} from '../types'
+import { HealthInsuranceRates, IncomeRates, NetIncomeCalculationOptions, Rates, SocialInsuranceRates } from '../types'
 import { Thresholds } from '../constants'
 
 interface NetSalaryResults {
@@ -24,11 +18,7 @@ interface NetSalaryResults {
   reachedThresholds: string[]
 }
 
-function calculateAmount(
-  amount: number,
-  rate: number,
-  { isRoundingEnabled }: NetIncomeCalculationOptions
-) {
+function calculateAmount(amount: number, rate: number, { isRoundingEnabled }: NetIncomeCalculationOptions) {
   return isRoundingEnabled ? Math.ceil(amount * rate) : amount * rate
 }
 
@@ -41,11 +31,7 @@ function calculateAmount(
  * @param incomeRates - The tax rates
  * @param options - Options for the calculation
  */
-function calculateIncomeTax(
-  salary: number,
-  incomeRates: IncomeRates,
-  options: NetIncomeCalculationOptions
-) {
+function calculateIncomeTax(salary: number, incomeRates: IncomeRates, options: NetIncomeCalculationOptions) {
   const { highRateThreshold, rate, highRate } = incomeRates
 
   const reachedThresholds: string[] = []
@@ -154,17 +140,9 @@ function calculateNetSalary(
     reachedThresholds: salaryThresholds,
   } = calculateIncomeTax(salary, incomeRates, options)
 
-  const { social, reachedThresholds: socialThresholds } = calculateSocial(
-    salary,
-    socialRates,
-    options
-  )
+  const { social, reachedThresholds: socialThresholds } = calculateSocial(salary, socialRates, options)
 
-  const { health, reachedThresholds: healthThresholds } = calculateHealth(
-    salary,
-    healthRates,
-    options
-  )
+  const { health, reachedThresholds: healthThresholds } = calculateHealth(salary, healthRates, options)
 
   const netSalary = salary - incomeTax - social.employee - health.employee
 

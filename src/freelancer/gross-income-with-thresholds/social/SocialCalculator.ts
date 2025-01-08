@@ -5,10 +5,7 @@ import { CalculationModifiers, SocialInsuranceRates } from '../../types'
 export class SocialCalculator {
   constructor(private readonly socialRates: SocialInsuranceRates) {}
 
-  calculate(
-    expensesWrapper: ProfitCoefficientsGetter,
-    thresholds: ThresholdKey[]
-  ): CalculationModifiers {
+  calculate(expensesWrapper: ProfitCoefficientsGetter, thresholds: ThresholdKey[]): CalculationModifiers {
     const { MAX_BASE_SOCIAL, MIN_BASE_SOCIAL } = Thresholds
 
     if (thresholds.includes(MIN_BASE_SOCIAL)) {

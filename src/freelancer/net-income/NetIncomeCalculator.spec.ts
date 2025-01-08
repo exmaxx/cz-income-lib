@@ -174,10 +174,7 @@ describe('calculator of net income and insurance', () => {
 
       const expectedIncomeTax = Math.ceil(lowTaxAmount * rate + highTaxAmount * highRate - credit)
 
-      const { incomeTax, lowRateIncomeTax, highRateIncomeTax } = calculator.calculate(
-        highIncome,
-        fixedExpensesWrapper
-      )
+      const { incomeTax, lowRateIncomeTax, highRateIncomeTax } = calculator.calculate(highIncome, fixedExpensesWrapper)
 
       expect(incomeTax).toBe(expectedIncomeTax)
       expect(lowRateIncomeTax).toBe(lowTaxAmount * rate)

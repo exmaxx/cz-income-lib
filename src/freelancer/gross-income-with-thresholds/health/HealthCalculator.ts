@@ -5,10 +5,7 @@ import { CalculationModifiers, HealthInsuranceRates } from '../../types'
 export class HealthCalculator {
   constructor(private readonly healthRates: HealthInsuranceRates) {}
 
-  calculate(
-    expensesWrapper: ProfitCoefficientsGetter,
-    thresholds: ThresholdKey[]
-  ): CalculationModifiers {
+  calculate(expensesWrapper: ProfitCoefficientsGetter, thresholds: ThresholdKey[]): CalculationModifiers {
     const { MIN_BASE_HEALTH } = Thresholds
 
     if (thresholds.includes(MIN_BASE_HEALTH)) {

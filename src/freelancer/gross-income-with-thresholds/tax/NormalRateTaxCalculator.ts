@@ -6,10 +6,7 @@ import { CalculationModifiers, IncomeRates } from '../../types'
 export class NormalRateTaxCalculator implements TaxGetter {
   constructor(private readonly incomeRates: IncomeRates) {}
 
-  calculate(
-    expensesWrapper: ProfitCoefficientsGetter,
-    thresholds: ThresholdKey[]
-  ): CalculationModifiers {
+  calculate(expensesWrapper: ProfitCoefficientsGetter, thresholds: ThresholdKey[]): CalculationModifiers {
     const { credit, nonTaxable, rate } = this.incomeRates
 
     const profit = expensesWrapper.getProfitModifiers(thresholds)

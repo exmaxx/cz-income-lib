@@ -61,12 +61,7 @@ export default class NetIncomeCalculator {
     }
   }
 
-  private calculateNetIncome(
-    grossIncome: number,
-    incomeTax: number,
-    social: number,
-    health: number
-  ): number {
+  private calculateNetIncome(grossIncome: number, incomeTax: number, social: number, health: number): number {
     return grossIncome - incomeTax - social - health
   }
 

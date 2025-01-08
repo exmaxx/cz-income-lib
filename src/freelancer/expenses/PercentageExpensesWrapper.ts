@@ -1,9 +1,4 @@
-import {
-  ExpensesValidator,
-  ProfitGetter,
-  RealExpensesGetter,
-  ProfitCoefficientsGetter,
-} from './types'
+import { ExpensesValidator, ProfitGetter, RealExpensesGetter, ProfitCoefficientsGetter } from './types'
 import { MAX_FLAT_RATE_INCOME } from '../constants'
 import { CalculationModifiers } from '../types'
 import { ThresholdKey, Thresholds } from '../enums'

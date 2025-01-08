@@ -9,10 +9,7 @@ import { TaxGetter } from './types'
 export class TaxCalculator implements TaxGetter {
   constructor(private readonly incomeRates: IncomeRates) {}
 
-  calculate(
-    expensesWrapper: ProfitCoefficientsGetter,
-    thresholds: ThresholdKey[]
-  ): CalculationModifiers {
+  calculate(expensesWrapper: ProfitCoefficientsGetter, thresholds: ThresholdKey[]): CalculationModifiers {
     const { HIGH_TAX, ZERO_TAX } = Thresholds
 
     if (thresholds.includes(ZERO_TAX)) {

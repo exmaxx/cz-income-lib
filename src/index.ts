@@ -11,11 +11,7 @@ export { default as calculateEmployeeGrossSalary } from './employee/gross-salary
 
 export type { FreelancerRates, EmployeeRates }
 
-export function calculateFreelancerGrossIncome(
-  netIncome: number,
-  expenses: Expenses,
-  rates: FreelancerRates
-): number {
+export function calculateFreelancerGrossIncome(netIncome: number, expenses: Expenses, rates: FreelancerRates): number {
   const calculator = new GrossIncomeCalculator(rates)
   const expensesWrapper = wrapExpenses(expenses)
 

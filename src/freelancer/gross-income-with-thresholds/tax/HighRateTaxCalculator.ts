@@ -6,10 +6,7 @@ import { ThresholdKey } from '../../enums'
 export class HighRateTaxCalculator implements TaxGetter {
   constructor(private readonly incomeRates: IncomeRates) {}
 
-  calculate(
-    expensesWrapper: ProfitCoefficientsGetter,
-    thresholds: ThresholdKey[]
-  ): CalculationModifiers {
+  calculate(expensesWrapper: ProfitCoefficientsGetter, thresholds: ThresholdKey[]): CalculationModifiers {
     const { credit } = this.incomeRates
 
     const profit = expensesWrapper.getProfitModifiers(thresholds)

@@ -6,8 +6,7 @@ import PercentageExpensesWrapper from '../expenses/PercentageExpensesWrapper'
 import FixedExpensesWrapper from '../expenses/FixedExpensesWrapper'
 
 describe('estimates gross income from net income', () => {
-  const { HIGH_TAX, MAX_BASE_SOCIAL, MAX_FLAT_RATE, MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX } =
-    Thresholds
+  const { HIGH_TAX, MAX_BASE_SOCIAL, MAX_FLAT_RATE, MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX } = Thresholds
 
   const income = 1000000
   const highIncome = 10000000
@@ -38,26 +37,19 @@ describe('estimates gross income from net income', () => {
 
     describe('low income', () => {
       const minDeductions =
-        rates.healthRates.minBase * rates.healthRates.rate +
-        rates.socialRates.minBase * rates.socialRates.rate
+        rates.healthRates.minBase * rates.healthRates.rate + rates.socialRates.minBase * rates.socialRates.rate
 
       const lowThresholds: LowThresholdKey[] = [MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX]
 
       const percentageExpensesWrapper = new PercentageExpensesWrapper(0.6)
 
       it('returns gross income equal to min deductions for a net income of 0', () => {
-        expect(calculator.calculate(0, percentageExpensesWrapper, lowThresholds)).toEqual(
-          minDeductions
-        )
+        expect(calculator.calculate(0, percentageExpensesWrapper, lowThresholds)).toEqual(minDeductions)
       })
 
       // This is the case when gross income was zero but deductions needed to be paid -> negative net income
       it('returns 0 gross income for a net income equal to negative min deductions', () => {
-        const result = calculator.calculate(
-          -minDeductions,
-          percentageExpensesWrapper,
-          lowThresholds
-        )
+        const result = calculator.calculate(-minDeductions, percentageExpensesWrapper, lowThresholds)
 
         expect(result).toEqual(0)
       })
@@ -147,11 +139,7 @@ describe('estimates gross income from net income', () => {
           MIN_BASE_SOCIAL,
         ]
 
-        const estimatedGrossIncome = calculator.calculate(
-          netIncome,
-          fixedExpensesWrapper,
-          thresholds
-        )
+        const estimatedGrossIncome = calculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
 
         expect(estimatedGrossIncome).toBeCloseTo(income)
       })

@@ -6,8 +6,7 @@ import PercentageExpensesWrapper from '../expenses/PercentageExpensesWrapper'
 import FixedExpensesWrapper from '../expenses/FixedExpensesWrapper'
 
 const minDeductions =
-  rates.healthRates.minBase * rates.healthRates.rate +
-  rates.socialRates.minBase * rates.socialRates.rate
+  rates.healthRates.minBase * rates.healthRates.rate + rates.socialRates.minBase * rates.socialRates.rate
 
 const calculator = new GrossIncomeCalculator(rates)
 const netCalculator = new NetIncomeCalculator(rates)
@@ -24,11 +23,7 @@ describe('expenses as a flat rate percentage', () => {
 
     const percentageExpensesWrapper = new PercentageExpensesWrapper(expenses.percentage)
 
-    for (
-      let netIncomeIterated = netIncome;
-      netIncomeIterated < netIncome + 5;
-      netIncomeIterated++
-    ) {
+    for (let netIncomeIterated = netIncome; netIncomeIterated < netIncome + 5; netIncomeIterated++) {
       expect(() => calculator.calculate(netIncomeIterated, percentageExpensesWrapper)).not.toThrow()
     }
   })
@@ -122,9 +117,7 @@ describe('expenses as real amount', () => {
     const fixedExpensesWrapperMedium = new FixedExpensesWrapper(500000)
 
     for (let netIncomeIterated = 1200000; netIncomeIterated < 1200005; netIncomeIterated++) {
-      expect(() =>
-        calculator.calculate(netIncomeIterated, fixedExpensesWrapperMedium)
-      ).not.toThrow()
+      expect(() => calculator.calculate(netIncomeIterated, fixedExpensesWrapperMedium)).not.toThrow()
     }
 
     // high income
@@ -170,13 +163,9 @@ describe('expenses as real amount', () => {
 
       const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-      const { netIncome, healthAssessmentBase } = netCalculator.calculate(
-        grossIncome,
-        fixedExpensesWrapper,
-        {
-          isRoundingEnabled: false,
-        }
-      )
+      const { netIncome, healthAssessmentBase } = netCalculator.calculate(grossIncome, fixedExpensesWrapper, {
+        isRoundingEnabled: false,
+      })
 
       expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
 
@@ -192,13 +181,9 @@ describe('expenses as real amount', () => {
 
       const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-      const { netIncome, socialAssessmentBase } = netCalculator.calculate(
-        grossIncome,
-        fixedExpensesWrapper,
-        {
-          isRoundingEnabled: false,
-        }
-      )
+      const { netIncome, socialAssessmentBase } = netCalculator.calculate(grossIncome, fixedExpensesWrapper, {
+        isRoundingEnabled: false,
+      })
 
       expect(socialAssessmentBase).toEqual(rates.socialRates.minBase)
 

@@ -24,17 +24,10 @@ describe('ThresholdsChecker', () => {
 
       it('detects maximum flat rate, high tax and maximum base social for high income', () => {
         // Arrange
-        const netIncomeResults = netIncomeCalculator.calculate(
-          highGrossIncome,
-          percentageExpensesWrapper
-        )
+        const netIncomeResults = netIncomeCalculator.calculate(highGrossIncome, percentageExpensesWrapper)
 
         // Act
-        const reachedThresholds = thresholdsChecker.check(
-          highGrossIncome,
-          netIncomeResults,
-          expenses
-        )
+        const reachedThresholds = thresholdsChecker.check(highGrossIncome, netIncomeResults, expenses)
 
         // Assert
         const expectedThresholds: ThresholdKey[] = [
@@ -65,17 +58,10 @@ describe('ThresholdsChecker', () => {
         const thresholdsCheckerWithNonTaxable = new ThresholdsChecker(ratesWithNonTaxable)
         const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-        const netIncomeResults = netIncomeCalculatorWithNonTaxable.calculate(
-          income,
-          fixedExpensesWrapper
-        )
+        const netIncomeResults = netIncomeCalculatorWithNonTaxable.calculate(income, fixedExpensesWrapper)
 
         // Act
-        const reachedThresholds = thresholdsCheckerWithNonTaxable.check(
-          income,
-          netIncomeResults,
-          expenses
-        )
+        const reachedThresholds = thresholdsCheckerWithNonTaxable.check(income, netIncomeResults, expenses)
 
         // Assert
         expect(reachedThresholds.has(Thresholds.ZERO_TAX_BASE)).toBe(true)
@@ -123,17 +109,10 @@ describe('ThresholdsChecker', () => {
 
         const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-        const netIncomeResults = netIncomeCalculator.calculate(
-          highGrossIncome,
-          fixedExpensesWrapper
-        )
+        const netIncomeResults = netIncomeCalculator.calculate(highGrossIncome, fixedExpensesWrapper)
 
         // Act
-        const reachedThresholds = thresholdsChecker.check(
-          highGrossIncome,
-          netIncomeResults,
-          expenses
-        )
+        const reachedThresholds = thresholdsChecker.check(highGrossIncome, netIncomeResults, expenses)
 
         // Assert
         expect(reachedThresholds.has(Thresholds.MAX_BASE_SOCIAL)).toBe(true)
@@ -164,17 +143,10 @@ describe('ThresholdsChecker', () => {
 
         const fixedExpensesWrapper = new FixedExpensesWrapper(expenses.amount)
 
-        const netIncomeResults = netIncomeCalculator.calculate(
-          highGrossIncome,
-          fixedExpensesWrapper
-        )
+        const netIncomeResults = netIncomeCalculator.calculate(highGrossIncome, fixedExpensesWrapper)
 
         // Act
-        const reachedThresholds = thresholdsChecker.check(
-          highGrossIncome,
-          netIncomeResults,
-          expenses
-        )
+        const reachedThresholds = thresholdsChecker.check(highGrossIncome, netIncomeResults, expenses)
 
         // Assert
         const expectedThresholds: ThresholdKey[] = [Thresholds.HIGH_TAX, Thresholds.MAX_BASE_SOCIAL]

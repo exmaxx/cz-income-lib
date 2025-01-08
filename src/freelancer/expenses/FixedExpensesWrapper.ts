@@ -1,9 +1,4 @@
-import {
-  ExpensesValidator,
-  ProfitGetter,
-  RealExpensesGetter,
-  ProfitCoefficientsGetter,
-} from './types'
+import { ExpensesValidator, ProfitGetter, RealExpensesGetter, ProfitCoefficientsGetter } from './types'
 import { CalculationModifiers } from '../types'
 
 export default class FixedExpensesWrapper

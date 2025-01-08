@@ -1,10 +1,4 @@
-import {
-  CalculationModifiers,
-  HealthInsuranceRates,
-  IncomeRates,
-  Rates,
-  SocialInsuranceRates,
-} from '../types'
+import { CalculationModifiers, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
 import { ThresholdKey } from '../enums'
 import { RealExpensesGetter, ProfitCoefficientsGetter } from '../expenses/types'
 import { SocialCalculator } from './social/SocialCalculator'

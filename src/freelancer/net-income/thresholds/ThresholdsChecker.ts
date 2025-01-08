@@ -1,10 +1,4 @@
-import {
-  Expenses,
-  HealthInsuranceRates,
-  IncomeRates,
-  Rates,
-  SocialInsuranceRates,
-} from '../../types'
+import { Expenses, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../../types'
 import { ThresholdKey, Thresholds } from '../../enums'
 import { MAX_FLAT_RATE_INCOME } from '../../constants'
 
@@ -28,20 +22,9 @@ export class ThresholdsChecker {
    * @param expenses
    * @param netIncomeResults
    */
-  check(
-    grossIncome: number,
-    netIncomeResults: NetIncomeResults,
-    expenses: Expenses
-  ): Set<ThresholdKey> {
-    const {
-      HIGH_TAX,
-      MAX_BASE_SOCIAL,
-      MAX_FLAT_RATE,
-      MIN_BASE_HEALTH,
-      MIN_BASE_SOCIAL,
-      ZERO_TAX,
-      ZERO_TAX_BASE,
-    } = Thresholds
+  check(grossIncome: number, netIncomeResults: NetIncomeResults, expenses: Expenses): Set<ThresholdKey> {
+    const { HIGH_TAX, MAX_BASE_SOCIAL, MAX_FLAT_RATE, MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX, ZERO_TAX_BASE } =
+      Thresholds
 
     const reachedThresholds = new Set<ThresholdKey>()
 
