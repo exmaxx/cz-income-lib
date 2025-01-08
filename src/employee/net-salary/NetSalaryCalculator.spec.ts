@@ -1,11 +1,21 @@
-import calculateNetSalary from './netSalary'
 import { rates } from '../fixtures'
+import NetSalaryCalculator from './NetSalaryCalculator'
+import SocialCalculator from './social/SocialCalculator'
+import HealthCalculator from './health/HealthCalculator'
+import TaxCalculator from './tax/TaxCalculator'
 
 describe('Employee - Net Income', () => {
+  const { incomeRates, socialRates, healthRates } = rates
+
+  const socialCalculator = new SocialCalculator(socialRates)
+  const healthCalculator = new HealthCalculator(healthRates)
+  const taxCalculator = new TaxCalculator(incomeRates)
+  const netSalaryCalculator = new NetSalaryCalculator(socialCalculator, healthCalculator, taxCalculator)
+
   describe('medium salary', () => {
     it('calculates taxes and insurance', () => {
       const grossSalaryMonthly = 100000
-      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+      const result = netSalaryCalculator.calculate(12 * grossSalaryMonthly)
 
       expect(result).toEqual({
         health: {
@@ -16,7 +26,6 @@ describe('Employee - Net Income', () => {
         incomeTaxHighRate: 0,
         incomeTaxNormalRate: 180000,
         netSalary: 911640,
-        reachedThresholds: [],
         social: {
           employee: 85200,
           employer: 297600,
@@ -26,7 +35,7 @@ describe('Employee - Net Income', () => {
 
     it('works for salary just above minimal salary', () => {
       const grossSalaryMonthly = 20000
-      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+      const result = netSalaryCalculator.calculate(12 * grossSalaryMonthly)
 
       expect(result).toEqual({
         health: {
@@ -37,7 +46,6 @@ describe('Employee - Net Income', () => {
         incomeTaxHighRate: 0,
         incomeTaxNormalRate: 36000,
         netSalary: 207000,
-        reachedThresholds: [],
         social: {
           employee: 17040,
           employer: 59520,
@@ -49,7 +57,7 @@ describe('Employee - Net Income', () => {
   describe('low salary - lower than minimal salary (e.g. part time)', () => {
     it('minimal health insurance is reached - employee must pay the difference to the minimum amount of health insurance', () => {
       const grossSalaryMonthly = 18000
-      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+      const result = netSalaryCalculator.calculate(12 * grossSalaryMonthly)
 
       expect(result.health).toEqual({
         // NOTE: internet calculators count this monthly and then multiply by 12, but we calculate it yearly,
@@ -58,32 +66,28 @@ describe('Employee - Net Income', () => {
         employee: 11178,
         employer: 19440,
       })
-
-      expect(result.reachedThresholds).toContain('MIN_HEALTH')
     })
 
     it('income tax is zero', () => {
       const grossSalaryMonthly = 3000
-      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+      const result = netSalaryCalculator.calculate(12 * grossSalaryMonthly)
 
       expect(result.incomeTax).toEqual(0)
-      expect(result.reachedThresholds).toContain('ZERO_TAX')
     })
 
     it('negative salary', () => {
       const grossSalaryMonthly = 2000
-      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+      const result = netSalaryCalculator.calculate(12 * grossSalaryMonthly)
 
       expect(result.incomeTax).toEqual(0)
       expect(result.netSalary).toEqual(-6162)
-      expect(result.reachedThresholds).toEqual(expect.arrayContaining(['ZERO_TAX', 'MIN_HEALTH']))
     })
   })
 
   describe('high salary', () => {
     it('adds higher tax for amounts above 36-times the average salary', () => {
       const grossSalaryMonthly = 170000
-      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+      const result = netSalaryCalculator.calculate(12 * grossSalaryMonthly)
 
       const expected = {
         incomeTax: 311736,
@@ -93,12 +97,11 @@ describe('Employee - Net Income', () => {
       }
 
       expect(result).toMatchObject(expected)
-      expect(result.reachedThresholds).toEqual(expect.arrayContaining(['HIGH_TAX']))
     })
 
     it('omits social insurance for amounts above 48-times the average salary', () => {
       const grossSalaryMonthly = 300000
-      const result = calculateNetSalary(12 * grossSalaryMonthly, rates)
+      const result = netSalaryCalculator.calculate(12 * grossSalaryMonthly)
 
       const expected = {
         social: {
@@ -108,7 +111,6 @@ describe('Employee - Net Income', () => {
       }
 
       expect(result).toMatchObject(expected)
-      expect(result.reachedThresholds).toContain('MAX_BASE_SOCIAL')
     })
   })
 })

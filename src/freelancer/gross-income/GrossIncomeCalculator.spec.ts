@@ -12,102 +12,59 @@ const calculator = new GrossIncomeCalculator(rates)
 const netCalculator = new NetIncomeCalculator(rates)
 
 describe('expenses as a flat rate percentage', () => {
-  it.each([
-    { netIncome: 1200000, description: 'medium income' }, // 100 000 CZK / month
-    { netIncome: 8000000, description: 'high income' }, // 666 667 CZK / month
-    { netIncome: 300000, description: 'low income' }, // 25 000 CZK / month
-  ])('finishes for integer net income - for $description', ({ netIncome }) => {
-    const expenses: Expenses = {
-      percentage: 0.6,
-    }
+  describe.each([0.3, 0.4, 0.6, 0.8])('flat rate %f', (percentage) => {
+    it.each([
+      { netIncome: 1200000, description: 'medium income' }, // 100 000 CZK / month
+      { netIncome: 8000000, description: 'high income' }, // 666 667 CZK / month
+      { netIncome: 300000, description: 'low income' }, // 25 000 CZK / month
+    ])('finishes for integer net income - for $description', ({ netIncome }) => {
+      const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
-    const percentageExpensesWrapper = new PercentageExpensesWrapper(expenses.percentage)
-
-    for (let netIncomeIterated = netIncome; netIncomeIterated < netIncome + 5; netIncomeIterated++) {
-      expect(() => calculator.calculate(netIncomeIterated, percentageExpensesWrapper)).not.toThrow()
-    }
-  })
-
-  describe.each([
-    { grossIncome: 0 },
-    { grossIncome: 600000 }, // 50 000 CZK / month
-    { grossIncome: 1200000 }, // 100 000 CZK / month
-    { grossIncome: 2000000 }, // 166 667 CZK / month
-    { grossIncome: 2600000 }, // 216 667 CZK / month
-    { grossIncome: 10000000 }, // 833 333 CZK / month
-  ])('gross income $grossIncome', ({ grossIncome }) => {
-    it('calculates gross income from net income (30% rate)', () => {
-      const expenses: Expenses = {
-        percentage: 0.3,
+      for (let netIncomeIterated = netIncome; netIncomeIterated < netIncome + 5; netIncomeIterated++) {
+        expect(() => calculator.calculate(netIncomeIterated, percentageExpensesWrapper)).not.toThrow()
       }
-
-      const percentageExpensesWrapper = new PercentageExpensesWrapper(expenses.percentage)
-
-      const { netIncome } = netCalculator.calculate(grossIncome, percentageExpensesWrapper, {
-        isRoundingEnabled: false,
-      })
-
-      expect(calculator.calculate(netIncome, percentageExpensesWrapper)).toBeCloseTo(grossIncome, 5)
     })
 
-    it('calculates gross income from net income (40% rate)', () => {
-      const expenses: Expenses = {
-        percentage: 0.4,
-      }
+    describe.each([
+      { grossIncome: 0 },
+      { grossIncome: 600000 }, // 50 000 CZK / month
+      { grossIncome: 1200000 }, // 100 000 CZK / month
+      { grossIncome: 2000000 }, // 166 667 CZK / month
+      { grossIncome: 2600000 }, // 216 667 CZK / month
+      { grossIncome: 10000000 }, // 833 333 CZK / month
+    ])('gross income $grossIncome', ({ grossIncome }) => {
+      it('calculates gross income from net income (%f rate)', () => {
+        const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
-      const percentageExpensesWrapper = new PercentageExpensesWrapper(expenses.percentage)
+        const { netIncome } = netCalculator.calculate(grossIncome, percentageExpensesWrapper, {
+          isRoundingEnabled: false,
+        })
 
-      const { netIncome } = netCalculator.calculate(grossIncome, percentageExpensesWrapper, {
-        isRoundingEnabled: false,
+        expect(calculator.calculate(netIncome, percentageExpensesWrapper)).toBeCloseTo(grossIncome, 5)
       })
-
-      expect(calculator.calculate(netIncome, percentageExpensesWrapper)).toBeCloseTo(grossIncome, 5)
     })
 
-    it('calculates gross income from net income (60% rate)', () => {
-      const expenses: Expenses = {
-        percentage: 0.6,
-      }
-
-      const percentageExpensesWrapper = new PercentageExpensesWrapper(expenses.percentage)
-
-      const { netIncome } = netCalculator.calculate(grossIncome, percentageExpensesWrapper, {
-        isRoundingEnabled: false,
-      })
-
-      expect(calculator.calculate(netIncome, percentageExpensesWrapper)).toBeCloseTo(grossIncome, 5)
-    })
-  })
-
-  describe('zero net income', () => {
-    it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
-      'returns minimal deductions for a zero net income ($percentage rate)',
-      ({ percentage }) => {
+    describe('zero net income', () => {
+      it('returns minimal deductions for a zero net income ($f rate)', () => {
         const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
         expect(calculator.calculate(0, percentageExpensesWrapper)).toEqual(minDeductions)
-      }
-    )
-  })
+      })
+    })
 
-  describe('negative net income', () => {
-    it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
-      'returns 0 for a net income equal to negative minimal deductions ($percentage rate)',
-      ({ percentage }) => {
+    describe('negative net income', () => {
+      it('returns 0 for a net income equal to negative minimal deductions (%f rate)', () => {
         const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
         expect(calculator.calculate(-minDeductions, percentageExpensesWrapper)).toEqual(0)
-      }
-    )
+      })
 
-    it.each([{ percentage: 0.3 }, { percentage: 0.4 }, { percentage: 0.6 }, { percentage: 0.8 }])(
-      'still returns 0, even when net income is below to negative minimal deductions ($percentage rate)',
-      ({ percentage }) => {
+      it('still returns 0, even when net income is below to negative minimal deductions (%f rate)', () => {
         const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
         expect(calculator.calculate(-minDeductions - 1, percentageExpensesWrapper)).toEqual(0)
-      }
-    )
+      })
+    })
   })
 })
 

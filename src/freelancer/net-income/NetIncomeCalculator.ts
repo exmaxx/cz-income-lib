@@ -4,7 +4,7 @@ import { IncomeTaxBaseCalculator } from './income-tax/IncomeTaxBaseCalculator'
 import { IncomeTaxCalculator } from './income-tax/IncomeTaxCalculator'
 import { SocialCalculator } from './social/SocialCalculator'
 import { HealthCalculator } from './health/HealthCalculator'
-import { NetIncomeExpensesProvider, RealExpensesGetter } from '../expenses/types'
+import { ExpensesWrapperForNetIncome, ExpensesGetter } from '../expenses/types'
 
 export default class NetIncomeCalculator {
   /**
@@ -24,7 +24,7 @@ export default class NetIncomeCalculator {
    */
   calculate(
     grossIncome: number,
-    expensesWrapper: NetIncomeExpensesProvider,
+    expensesWrapper: ExpensesWrapperForNetIncome,
     options: NetIncomeCalculationOptions = { isRoundingEnabled: true }
   ): NetIncomeResults {
     if (!expensesWrapper.validate()) {
@@ -65,7 +65,7 @@ export default class NetIncomeCalculator {
     return grossIncome - incomeTax - social - health
   }
 
-  private adjustNetIncomeByExpenses(netIncome: number, expensesWrapper: RealExpensesGetter) {
-    return netIncome - expensesWrapper.getRealExpenses()
+  private adjustNetIncomeByExpenses(netIncome: number, expensesGetter: ExpensesGetter) {
+    return netIncome - expensesGetter.getRealExpenses()
   }
 }

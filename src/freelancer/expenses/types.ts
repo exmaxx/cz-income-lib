@@ -1,5 +1,5 @@
-import { CalculationModifiers } from '../types'
 import { ThresholdKey } from '../enums'
+import { Modifiers } from '../../types'
 
 export interface ExpensesValidator {
   /**
@@ -16,33 +16,25 @@ export interface ProfitGetter {
   getProfit(grossIncome: number): number
 }
 
-export interface RealExpensesGetter {
+export interface ExpensesGetter {
   /**
    * Gets the real expenses that were spent in the real world.
    */
   getRealExpenses(): number
 }
 
-// TODO: This interface is not needed anywhere outside of the wrappers.
-export interface VirtualExpensesGetter {
-  /**
-   * Get expenses for the calculation. Can be "virtual" (i.e. percentage of gross income)
-   * or "real" (i.e. fixed amount).
-   * @param income
-   */
-  getCalculationExpenses(income: number): number
-}
-
 export interface ProfitCoefficientsGetter {
   /**
    * Gets the expressions that will be used in the grand equation.
    * @param thresholds
-   * @returns `grossIncomeAdjustment` (used at the top of the fraction),
-   * `grossIncomeMultiplier` (used at the bottom)
+   * @returns `amount` (used at the top of the fraction),
+   * `rate` (used at the bottom)
    */
-  getProfitModifiers(thresholds: ThresholdKey[]): CalculationModifiers
+  getProfitModifiers(thresholds: ThresholdKey[]): Modifiers
 }
 
-export type NetIncomeExpensesProvider = ExpensesValidator & ProfitGetter & RealExpensesGetter
+export type ExpensesWrapperForNetIncome = ExpensesValidator & ProfitGetter & ExpensesGetter
 
-export type ExpensesWrapper = NetIncomeExpensesProvider & RealExpensesGetter & ProfitCoefficientsGetter
+export type ExpensesWrapperForGrossIncome = ExpensesGetter & ProfitCoefficientsGetter
+
+export type ExpensesWrapper = ExpensesValidator & ProfitGetter & ExpensesGetter & ProfitCoefficientsGetter

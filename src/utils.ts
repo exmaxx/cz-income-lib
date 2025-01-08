@@ -17,3 +17,13 @@ export function areTechnicallyEqual(a: number, b: number): boolean {
 export function deepCloneSimple<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
+
+/**
+ * Rounds a number up, when rounding is enabled.
+ *
+ * @param amount
+ * @param isRoundingEnabled
+ */
+export function maybeToCeil(amount: number, isRoundingEnabled = true): number {
+  return isRoundingEnabled ? Math.ceil(amount) : amount
+}

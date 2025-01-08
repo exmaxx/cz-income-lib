@@ -1,38 +1,20 @@
-import { CalculationModifiers, HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
+import { HealthInsuranceRates, IncomeRates, Rates, SocialInsuranceRates } from '../types'
 import { ThresholdKey } from '../enums'
-import { RealExpensesGetter, ProfitCoefficientsGetter } from '../expenses/types'
-import { SocialCalculator } from './social/SocialCalculator'
-import { HealthCalculator } from './health/HealthCalculator'
-import { TaxCalculator } from './tax/TaxCalculator'
+import { ExpensesWrapperForGrossIncome } from '../expenses/types'
+import { SocialModifiers } from './social/SocialModifiers'
+import { HealthModifiers } from './health/HealthModifiers'
+import { TaxModifiers } from './tax/TaxModifiers'
+import ProfitModifiers from './profit/ProfitModifiers'
 
 export default class GrossIncomeCalculatorWithThresholds {
   private readonly incomeRates: IncomeRates
   private readonly socialRates: SocialInsuranceRates
   private readonly healthRates: HealthInsuranceRates
 
-  /**
-   * @param rates - The rates for income tax, social insurance, and health insurance
-   */
   constructor(private readonly rates: Rates) {
     this.incomeRates = this.rates.incomeRates
     this.socialRates = this.rates.socialRates
     this.healthRates = this.rates.healthRates
-  }
-
-  /**
-   * Calculates the real profit from the expenses. In case of flat-rate percentage expenses, the real profit
-   * is the whole gross income.
-   *
-   * @param expensesWrapper
-   */
-  getRealProfit(expensesWrapper: RealExpensesGetter): CalculationModifiers {
-    let grossIncomeAdjustment = -expensesWrapper.getRealExpenses()
-    let grossIncomeMultiplier = 1
-
-    return {
-      grossIncomeAdjustment,
-      grossIncomeMultiplier,
-    }
   }
 
   /**
@@ -69,33 +51,18 @@ export default class GrossIncomeCalculatorWithThresholds {
    */
   calculate(
     netIncome: number,
-    expensesWrapper: RealExpensesGetter & ProfitCoefficientsGetter,
+    expensesWrapper: ExpensesWrapperForGrossIncome,
     thresholds: ThresholdKey[] = []
   ): number {
-    const taxCalculator = new TaxCalculator(this.incomeRates)
-    const tax = taxCalculator.calculate(expensesWrapper, thresholds)
+    const tax = new TaxModifiers(this.incomeRates).get(expensesWrapper, thresholds)
+    const profit = new ProfitModifiers().get(expensesWrapper)
+    const social = new SocialModifiers(this.socialRates).get(expensesWrapper, thresholds)
+    const health = new HealthModifiers(this.healthRates).get(expensesWrapper, thresholds)
 
-    const profit = this.getRealProfit(expensesWrapper)
+    const adjustedNetIncome = netIncome - (profit.amount - tax.amount - social.amount - health.amount)
 
-    const socialCalculator = new SocialCalculator(this.socialRates)
-    const social = socialCalculator.calculate(expensesWrapper, thresholds)
+    const combinedRates = profit.rate - tax.rate - social.rate - health.rate
 
-    const healthCalculator = new HealthCalculator(this.healthRates)
-    const health = healthCalculator.calculate(expensesWrapper, thresholds)
-
-    const fractionTop =
-      netIncome -
-      (profit.grossIncomeAdjustment -
-        tax.grossIncomeAdjustment -
-        social.grossIncomeAdjustment -
-        health.grossIncomeAdjustment)
-
-    const fractionBottom =
-      profit.grossIncomeMultiplier -
-      tax.grossIncomeMultiplier -
-      social.grossIncomeMultiplier -
-      health.grossIncomeMultiplier
-
-    return fractionTop / fractionBottom
+    return adjustedNetIncome / combinedRates
   }
 }

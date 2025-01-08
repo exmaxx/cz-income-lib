@@ -73,28 +73,3 @@ export type PercentageExpenses = { amount?: never; percentage: number }
  * { rate: 0.6 } // flat-rate percentage, meaning 60%
  */
 export type Expenses = ExactExpenses | PercentageExpenses
-
-/**
- * These coefficients will be passed to the grand equation of the gross income calculation (i.e.
- * reverse of the net income formula).
- *
- * Income adjustments at the top of the fraction.
- * Income multiplier at the bottom of the fraction.
- */
-export interface CalculationModifiers {
-  /**
-   * The amount that is originally subtracted from the gross income when calculation the net income.
-   *
-   * This is used at the grand equation for the gross income calculation. All the gross income
-   * adjustments are added or subtracted from the net income.
-   *
-   * Any fixed values (e.g. real expenses) are added here.
-   */
-  grossIncomeAdjustment: number
-
-  /** The multiplier of the gross income in the original calculation of the net income.
-   *
-   * All the variable multipliers of the gross income belong here (e.g. flat-rate percentage value).
-   */
-  grossIncomeMultiplier: number
-}

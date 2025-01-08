@@ -3,7 +3,7 @@ import { areTechnicallyEqual } from '../../utils'
 import { ThresholdKey, Thresholds } from '../enums'
 import GrossIncomeCalculatorWithThresholds from '../gross-income-with-thresholds/GrossIncomeCalculatorWithThresholds'
 import NetIncomeCalculator from '../net-income/NetIncomeCalculator'
-import { ExpensesWrapper } from '../expenses/types'
+import { ExpensesWrapper, ExpensesWrapperForNetIncome } from '../expenses/types'
 
 class GrossIncomeCalculator {
   private readonly minDeductions: number
@@ -55,9 +55,7 @@ class GrossIncomeCalculator {
    * @returns The gross income, which is always zero or positive.
    */
   calculate(netIncome: number, expensesWrapper: ExpensesWrapper): number {
-    const isValid = !this.isNetIncomeValid(netIncome)
-
-    if (isValid) {
+    if (!this.isNetIncomeValid(netIncome)) {
       return expensesWrapper.getRealExpenses()
     }
 
@@ -72,6 +70,7 @@ class GrossIncomeCalculator {
   private getThresholdSets(): ThresholdKey[][] {
     const { MIN_BASE_HEALTH, MIN_BASE_SOCIAL, ZERO_TAX, MAX_FLAT_RATE, MAX_BASE_SOCIAL, HIGH_TAX } = Thresholds
 
+    // TODO: Use just a subset of the thresholds based on the income
     return [
       [],
       [MIN_BASE_HEALTH],
@@ -149,7 +148,11 @@ class GrossIncomeCalculator {
    * @param netIncome
    * @param expensesWrapper
    */
-  private isGrossIncomeCorrect(grossIncome: number, netIncome: number, expensesWrapper: ExpensesWrapper): boolean {
+  private isGrossIncomeCorrect(
+    grossIncome: number,
+    netIncome: number,
+    expensesWrapper: ExpensesWrapperForNetIncome
+  ): boolean {
     const { netIncome: netIncomeForVerification } = this.netCalculator.calculate(grossIncome, expensesWrapper, {
       isRoundingEnabled: false,
     })
