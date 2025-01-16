@@ -1,6 +1,6 @@
 {
   "name": "@exmaxx/cz-income-lib",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Library for calculating net and gross income, taxes, social, and health insurance for freelancers and employees in Czechia",
   "author": "Marek Ulicny",
   "license": "CC-BY-SA-4.0",
