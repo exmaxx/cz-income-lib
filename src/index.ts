@@ -1,6 +1,7 @@
 import type { Expenses, Rates as FreelancerRates } from './freelancer/types'
 import type { Rates as EmployeeRates } from './employee/types'
 import { NetIncomeResults } from './freelancer/net-income/types'
+import { NetSalaryResults } from './employee/net-salary/types'
 import GrossIncomeCalculator from './freelancer/gross-income/GrossIncomeCalculator'
 import NetIncomeCalculator from './freelancer/net-income/NetIncomeCalculator'
 import PercentageExpensesWrapper from './freelancer/expenses/PercentageExpensesWrapper'
@@ -13,7 +14,7 @@ import GrossSalaryCalculator from './employee/gross-salary/GrossSalaryCalculator
 
 export type { FreelancerRates, EmployeeRates }
 
-export function calculateEmployeeNetSalary(salary: number, rates: EmployeeRates): number {
+export function calculateEmployeeNetSalary(salary: number, rates: EmployeeRates): NetSalaryResults {
   const { incomeRates, socialRates, healthRates } = rates
 
   const socialCalculator = new SocialCalculator(socialRates)
@@ -21,7 +22,7 @@ export function calculateEmployeeNetSalary(salary: number, rates: EmployeeRates)
   const taxCalculator = new TaxCalculator(incomeRates)
   const netSalaryCalculator = new NetSalaryCalculator(socialCalculator, healthCalculator, taxCalculator)
 
-  return netSalaryCalculator.calculate(salary).netSalary
+  return netSalaryCalculator.calculate(salary)
 }
 
 export function calculateEmployeeGrossSalary(netSalary: number, rates: EmployeeRates): number {
