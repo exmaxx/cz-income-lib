@@ -5,17 +5,36 @@ import GrossIncomeCalculator from './freelancer/gross-income/GrossIncomeCalculat
 import NetIncomeCalculator from './freelancer/net-income/NetIncomeCalculator'
 import PercentageExpensesWrapper from './freelancer/expenses/PercentageExpensesWrapper'
 import FixedExpensesWrapper from './freelancer/expenses/FixedExpensesWrapper'
-
-export { default as calculateEmployeeNetSalary } from './employee/net-salary/netSalary'
-export { default as calculateEmployeeGrossSalary } from './employee/gross-salary/grossSalaryWithRules'
+import NetSalaryCalculator from './employee/net-salary/NetSalaryCalculator'
+import SocialCalculator from './employee/net-salary/social/SocialCalculator'
+import HealthCalculator from './employee/net-salary/health/HealthCalculator'
+import TaxCalculator from './employee/net-salary/tax/TaxCalculator'
+import GrossSalaryCalculator from './employee/gross-salary/GrossSalaryCalculator'
 
 export type { FreelancerRates, EmployeeRates }
 
+export function calculateEmployeeNetSalary(salary: number, rates: EmployeeRates): number {
+  const { incomeRates, socialRates, healthRates } = rates
+
+  const socialCalculator = new SocialCalculator(socialRates)
+  const healthCalculator = new HealthCalculator(healthRates)
+  const taxCalculator = new TaxCalculator(incomeRates)
+  const netSalaryCalculator = new NetSalaryCalculator(socialCalculator, healthCalculator, taxCalculator)
+
+  return netSalaryCalculator.calculate(salary).netSalary
+}
+
+export function calculateEmployeeGrossSalary(netSalary: number, rates: EmployeeRates): number {
+  const grossSalaryCalculator = GrossSalaryCalculator.create(rates)
+
+  return grossSalaryCalculator.calculate(netSalary)
+}
+
 export function calculateFreelancerGrossIncome(netIncome: number, expenses: Expenses, rates: FreelancerRates): number {
-  const calculator = new GrossIncomeCalculator(rates)
+  const grossIncomeCalculator = new GrossIncomeCalculator(rates)
   const expensesWrapper = wrapExpenses(expenses)
 
-  return calculator.calculate(netIncome, expensesWrapper)
+  return grossIncomeCalculator.calculate(netIncome, expensesWrapper)
 }
 
 export function calculateFreelancerNetIncome(
@@ -23,10 +42,10 @@ export function calculateFreelancerNetIncome(
   expenses: Expenses,
   rates: FreelancerRates
 ): NetIncomeResults {
-  const calculator = new NetIncomeCalculator(rates)
+  const netIncomeCalculator = new NetIncomeCalculator(rates)
   const expensesWrapper = wrapExpenses(expenses)
 
-  return calculator.calculate(grossIncome, expensesWrapper)
+  return netIncomeCalculator.calculate(grossIncome, expensesWrapper)
 }
 
 function wrapExpenses(expenses: Expenses) {

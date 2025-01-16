@@ -1,10 +1,10 @@
-import { ExpensesValidator, ProfitGetter, RealExpensesGetter, ProfitCoefficientsGetter } from './types'
+import { ExpensesValidator, ProfitGetter, ExpensesGetter, ProfitCoefficientsGetter } from './types'
 import { MAX_FLAT_RATE_INCOME } from '../constants'
-import { CalculationModifiers } from '../types'
 import { ThresholdKey, Thresholds } from '../enums'
+import { Modifiers } from '../../types'
 
 export default class PercentageExpensesWrapper
-  implements ExpensesValidator, ProfitGetter, RealExpensesGetter, ProfitCoefficientsGetter
+  implements ExpensesValidator, ProfitGetter, ExpensesGetter, ProfitCoefficientsGetter
 {
   constructor(private readonly _percentage: number) {}
 
@@ -27,18 +27,18 @@ export default class PercentageExpensesWrapper
     return income * this._percentage
   }
 
-  getProfitModifiers(thresholds: ThresholdKey[]): CalculationModifiers {
+  getProfitModifiers(thresholds: ThresholdKey[]): Modifiers {
     const isMaxFlatRateUsed = thresholds.includes(Thresholds.MAX_FLAT_RATE)
 
     if (isMaxFlatRateUsed) {
       return {
-        grossIncomeAdjustment: -this.getVirtualExpenses(MAX_FLAT_RATE_INCOME),
-        grossIncomeMultiplier: 1,
+        amount: -this.getVirtualExpenses(MAX_FLAT_RATE_INCOME),
+        rate: 1,
       }
     } else {
       return {
-        grossIncomeAdjustment: 0,
-        grossIncomeMultiplier: 1 - this._percentage,
+        amount: 0,
+        rate: 1 - this._percentage,
       }
     }
   }

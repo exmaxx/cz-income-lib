@@ -1,8 +1,9 @@
-import { ExpensesValidator, ProfitGetter, RealExpensesGetter, ProfitCoefficientsGetter } from './types'
-import { CalculationModifiers } from '../types'
+import { ExpensesValidator, ProfitGetter, ExpensesGetter, ProfitCoefficientsGetter } from './types'
+
+import { Modifiers } from '../../types'
 
 export default class FixedExpensesWrapper
-  implements ExpensesValidator, ProfitGetter, RealExpensesGetter, ProfitCoefficientsGetter
+  implements ExpensesValidator, ProfitGetter, ExpensesGetter, ProfitCoefficientsGetter
 {
   constructor(private readonly _amount: number) {}
 
@@ -20,10 +21,10 @@ export default class FixedExpensesWrapper
     return this._amount
   }
 
-  getProfitModifiers(): CalculationModifiers {
+  getProfitModifiers(): Modifiers {
     return {
-      grossIncomeAdjustment: -this.getRealExpenses(),
-      grossIncomeMultiplier: 1,
+      amount: -this.getRealExpenses(),
+      rate: 1,
     }
   }
 }
