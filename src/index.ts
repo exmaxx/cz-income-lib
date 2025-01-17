@@ -12,7 +12,7 @@ import HealthCalculator from './employee/net-salary/health/HealthCalculator'
 import TaxCalculator from './employee/net-salary/tax/TaxCalculator'
 import GrossSalaryCalculator from './employee/gross-salary/GrossSalaryCalculator'
 
-export type { FreelancerRates, EmployeeRates }
+export type { FreelancerRates, EmployeeRates, NetIncomeResults, NetSalaryResults }
 
 export function calculateEmployeeNetSalary(salary: number, rates: EmployeeRates): NetSalaryResults {
   const { incomeRates, socialRates, healthRates } = rates
