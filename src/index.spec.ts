@@ -7,6 +7,8 @@ import {
 import { Expenses } from './freelancer/types'
 import { rates as freelancerRates } from './freelancer/fixtures'
 import { rates as employeeRates } from './employee/fixtures'
+import { NetIncomeResults } from './freelancer/net-income/types'
+import { NetSalaryResults } from './employee/net-salary/types'
 
 describe('exported functions', () => {
   describe('freelancer', () => {
@@ -18,15 +20,13 @@ describe('exported functions', () => {
     }
 
     describe('calculateFreelancerNetIncome()', () => {
-      const fn = calculateFreelancerNetIncome
-
       it('is properly exported from the lib', () => {
-        expect(fn).toBeDefined()
-        expect(typeof fn).toBe('function')
+        expect(calculateFreelancerNetIncome).toBeDefined()
+        expect(typeof calculateFreelancerNetIncome).toBe('function')
       })
 
       it('has 3 parameters', () => {
-        expect(fn.length).toBe(3)
+        expect(calculateFreelancerNetIncome.length).toBe(3)
       })
 
       it('can be called', () => {
@@ -34,7 +34,7 @@ describe('exported functions', () => {
           percentage: 0.6,
         }
 
-        const result = fn(netIncome, expenses, freelancerRates)
+        const result = calculateFreelancerNetIncome(netIncome, expenses, freelancerRates)
 
         expect(result).toBeDefined()
       })
@@ -43,26 +43,49 @@ describe('exported functions', () => {
         const wrongExpenses = {}
 
         // @ts-expect-error
-        expect(() => fn(grossIncome, wrongExpenses, freelancerRates)).toThrow(
+        expect(() => calculateFreelancerNetIncome(grossIncome, wrongExpenses, freelancerRates)).toThrow(
           'Expenses must have a property "percentage" or "amount"'
         )
+      })
+
+      it('runs well', () => {
+        // Arrange
+        const expectedNetIncomeResults: NetIncomeResults = {
+          health: 32663,
+          healthAssessmentBase: 241944,
+          highRateIncomeTax: 0,
+          highRateTaxBase: 0,
+          incomeTax: 29160,
+          incomeTaxBase: 400000,
+          lowRateIncomeTax: 60000,
+          lowRateTaxBase: 400000,
+          netIncome: 879777,
+          profit: 400000,
+          social: 58400,
+          socialAssessmentBase: 200000,
+          taxableProfit: 400000,
+        }
+
+        // Act
+        const result = calculateFreelancerNetIncome(grossIncome, expenses, freelancerRates)
+
+        // Assert
+        expect(result).toStrictEqual<NetIncomeResults>(expectedNetIncomeResults)
       })
     })
 
     describe('calculateFreelancerGrossIncome()', () => {
-      const fn = calculateFreelancerGrossIncome
-
       it('is properly exported from the lib', () => {
-        expect(fn).toBeDefined()
-        expect(typeof fn).toBe('function')
+        expect(calculateFreelancerGrossIncome).toBeDefined()
+        expect(typeof calculateFreelancerGrossIncome).toBe('function')
       })
 
       it('has 3 parameters', () => {
-        expect(fn.length).toBe(3)
+        expect(calculateFreelancerGrossIncome.length).toBe(3)
       })
 
       it('can be called', () => {
-        const result = fn(grossIncome, expenses, freelancerRates)
+        const result = calculateFreelancerGrossIncome(grossIncome, expenses, freelancerRates)
 
         expect(result).toBeDefined()
       })
@@ -71,9 +94,20 @@ describe('exported functions', () => {
         const wrongExpenses = {}
 
         // @ts-expect-error
-        expect(() => fn(grossIncome, wrongExpenses, freelancerRates)).toThrow(
+        expect(() => calculateFreelancerGrossIncome(grossIncome, wrongExpenses, freelancerRates)).toThrow(
           'Expenses must have a property "percentage" or "amount"'
         )
+      })
+
+      it('runs well', () => {
+        // Arrange
+        const expectedGrossIncome = 1136368.4664246824
+
+        // Act
+        const result = calculateFreelancerGrossIncome(netIncome, expenses, freelancerRates)
+
+        // Assert
+        expect(result).toBe(expectedGrossIncome)
       })
     })
   })
@@ -83,40 +117,71 @@ describe('exported functions', () => {
     const netSalary = 1000000
 
     describe('calculateEmployeeNetSalary()', () => {
-      const fn = calculateEmployeeNetSalary
-
       it('is properly exported from the lib', () => {
-        expect(fn).toBeDefined()
-        expect(typeof fn).toBe('function')
+        expect(calculateEmployeeNetSalary).toBeDefined()
+        expect(typeof calculateEmployeeNetSalary).toBe('function')
       })
 
       it('has 2 parameters', () => {
-        expect(fn.length).toBe(2)
+        expect(calculateEmployeeNetSalary.length).toBe(2)
       })
 
       it('can be called', () => {
-        const result = fn(grossSalary, employeeRates)
+        const result = calculateEmployeeNetSalary(grossSalary, employeeRates)
 
         expect(result).toBeDefined()
+      })
+
+      it('runs well', () => {
+        // Arrange
+        const expectedNetSalaryResults: NetSalaryResults = {
+          health: {
+            employee: 45000,
+            employer: 90000,
+          },
+          incomeTax: 119160,
+          incomeTaxHighRate: 0,
+          incomeTaxNormalRate: 150000,
+          netSalary: 764840,
+          social: {
+            employee: 71000,
+            employer: 248000,
+          },
+        }
+
+        // Act
+        const result = calculateEmployeeNetSalary(grossSalary, employeeRates)
+
+        // Assert
+        expect(result).toStrictEqual<NetSalaryResults>(expectedNetSalaryResults)
       })
     })
 
     describe('calculateEmployeeGrossSalary()', () => {
-      const fn = calculateEmployeeGrossSalary
-
       it('exports a function', () => {
-        expect(fn).toBeDefined()
-        expect(typeof fn).toBe('function')
+        expect(calculateEmployeeGrossSalary).toBeDefined()
+        expect(typeof calculateEmployeeGrossSalary).toBe('function')
       })
 
       it('has 2 parameters', () => {
-        expect(fn.length).toBe(2)
+        expect(calculateEmployeeGrossSalary.length).toBe(2)
       })
 
       it('can be called', () => {
-        const result = fn(netSalary, employeeRates)
+        const result = calculateEmployeeGrossSalary(netSalary, employeeRates)
 
         expect(result).toBeDefined()
+      })
+
+      it('runs well', () => {
+        // Arrange
+        const expectedGrossSalary = 1320381.4713896457
+
+        // Act
+        const result = calculateEmployeeGrossSalary(netSalary, employeeRates)
+
+        // Assert
+        expect(result).toBe(expectedGrossSalary)
       })
     })
   })
