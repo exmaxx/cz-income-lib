@@ -11,7 +11,7 @@ describe('estimates gross income from net income', () => {
   const income = 1000000
   const highIncome = 10000000
 
-  const calculator = new GrossIncomeCalculatorWithThresholds(rates)
+  const grossCalculator = new GrossIncomeCalculatorWithThresholds(rates)
   const netCalculator = new NetIncomeCalculator(rates)
 
   describe('expenses as flat-rate percentage', () => {
@@ -29,7 +29,7 @@ describe('estimates gross income from net income', () => {
           isRoundingEnabled: false,
         })
 
-        const result = calculator.calculate(netIncome, percentageExpensesWrapper)
+        const result = grossCalculator.calculate(netIncome, percentageExpensesWrapper)
 
         expect(result).toBeCloseTo(gross)
       })
@@ -44,12 +44,12 @@ describe('estimates gross income from net income', () => {
       const percentageExpensesWrapper = new PercentageExpensesWrapper(0.6)
 
       it('returns gross income equal to min deductions for a net income of 0', () => {
-        expect(calculator.calculate(0, percentageExpensesWrapper, lowThresholds)).toEqual(minDeductions)
+        expect(grossCalculator.calculate(0, percentageExpensesWrapper, lowThresholds)).toEqual(minDeductions)
       })
 
       // This is the case when gross income was zero but deductions needed to be paid -> negative net income
       it('returns 0 gross income for a net income equal to negative min deductions', () => {
-        const result = calculator.calculate(-minDeductions, percentageExpensesWrapper, lowThresholds)
+        const result = grossCalculator.calculate(-minDeductions, percentageExpensesWrapper, lowThresholds)
 
         expect(result).toEqual(0)
       })
@@ -59,7 +59,7 @@ describe('estimates gross income from net income', () => {
           isRoundingEnabled: false,
         })
 
-        const result = calculator.calculate(netIncome, percentageExpensesWrapper, lowThresholds)
+        const result = grossCalculator.calculate(netIncome, percentageExpensesWrapper, lowThresholds)
 
         expect(result).toEqual(100)
       })
@@ -82,7 +82,7 @@ describe('estimates gross income from net income', () => {
           isRoundingEnabled: false,
         })
 
-        const result = calculator.calculate(netIncome, percentageExpensesWrapper, highThresholds)
+        const result = grossCalculator.calculate(netIncome, percentageExpensesWrapper, highThresholds)
 
         expect(result).toEqual(gross)
       })
@@ -100,7 +100,7 @@ describe('estimates gross income from net income', () => {
           isRoundingEnabled: false,
         })
 
-        const result = calculator.calculate(netIncome, fixedExpensesWrapper)
+        const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper)
 
         expect(result).toBeCloseTo(income)
       })
@@ -118,7 +118,7 @@ describe('estimates gross income from net income', () => {
 
         const thresholds = [MIN_BASE_HEALTH]
 
-        const result = calculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
+        const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
 
         expect(result).toBeCloseTo(income)
       })
@@ -139,7 +139,7 @@ describe('estimates gross income from net income', () => {
           MIN_BASE_SOCIAL,
         ]
 
-        const estimatedGrossIncome = calculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
+        const estimatedGrossIncome = grossCalculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
 
         expect(estimatedGrossIncome).toBeCloseTo(income)
       })
@@ -160,7 +160,7 @@ describe('estimates gross income from net income', () => {
           ZERO_TAX,
         ]
 
-        const result = calculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
+        const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
 
         expect(result).toEqual(income)
       })
@@ -178,7 +178,7 @@ describe('estimates gross income from net income', () => {
 
         const thresholds = [HIGH_TAX]
 
-        const result = calculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
+        const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
 
         expect(result).toEqual(highIncome)
       })
@@ -194,7 +194,7 @@ describe('estimates gross income from net income', () => {
 
         const thresholds = [HIGH_TAX, MAX_BASE_SOCIAL]
 
-        const result = calculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
+        const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper, thresholds)
 
         expect(result).toEqual(highIncome)
       })

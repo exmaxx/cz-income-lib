@@ -8,7 +8,7 @@ import FixedExpensesWrapper from '../expenses/FixedExpensesWrapper'
 const minDeductions =
   rates.healthRates.minBase * rates.healthRates.rate + rates.socialRates.minBase * rates.socialRates.rate
 
-const calculator = new GrossIncomeCalculator(rates)
+const grossCalculator = new GrossIncomeCalculator(rates)
 const netCalculator = new NetIncomeCalculator(rates)
 
 describe('expenses as a flat rate percentage', () => {
@@ -21,7 +21,7 @@ describe('expenses as a flat rate percentage', () => {
       const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
       for (let netIncomeIterated = netIncome; netIncomeIterated < netIncome + 5; netIncomeIterated++) {
-        expect(() => calculator.calculate(netIncomeIterated, percentageExpensesWrapper)).not.toThrow()
+        expect(() => grossCalculator.calculate(netIncomeIterated, percentageExpensesWrapper)).not.toThrow()
       }
     })
 
@@ -40,7 +40,7 @@ describe('expenses as a flat rate percentage', () => {
           isRoundingEnabled: false,
         })
 
-        expect(calculator.calculate(netIncome, percentageExpensesWrapper)).toBeCloseTo(grossIncome, 5)
+        expect(grossCalculator.calculate(netIncome, percentageExpensesWrapper)).toBeCloseTo(grossIncome, 5)
       })
     })
 
@@ -48,7 +48,7 @@ describe('expenses as a flat rate percentage', () => {
       it('returns minimal deductions for a zero net income ($f rate)', () => {
         const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
-        expect(calculator.calculate(0, percentageExpensesWrapper)).toEqual(minDeductions)
+        expect(grossCalculator.calculate(0, percentageExpensesWrapper)).toEqual(minDeductions)
       })
     })
 
@@ -56,13 +56,13 @@ describe('expenses as a flat rate percentage', () => {
       it('returns 0 for a net income equal to negative minimal deductions (%f rate)', () => {
         const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
-        expect(calculator.calculate(-minDeductions, percentageExpensesWrapper)).toEqual(0)
+        expect(grossCalculator.calculate(-minDeductions, percentageExpensesWrapper)).toEqual(0)
       })
 
       it('still returns 0, even when net income is below to negative minimal deductions (%f rate)', () => {
         const percentageExpensesWrapper = new PercentageExpensesWrapper(percentage)
 
-        expect(calculator.calculate(-minDeductions - 1, percentageExpensesWrapper)).toEqual(0)
+        expect(grossCalculator.calculate(-minDeductions - 1, percentageExpensesWrapper)).toEqual(0)
       })
     })
   })
@@ -74,21 +74,21 @@ describe('expenses as real amount', () => {
     const fixedExpensesWrapperMedium = new FixedExpensesWrapper(500000)
 
     for (let netIncomeIterated = 1200000; netIncomeIterated < 1200005; netIncomeIterated++) {
-      expect(() => calculator.calculate(netIncomeIterated, fixedExpensesWrapperMedium)).not.toThrow()
+      expect(() => grossCalculator.calculate(netIncomeIterated, fixedExpensesWrapperMedium)).not.toThrow()
     }
 
     // high income
     const fixedExpensesWrapperHigh = new FixedExpensesWrapper(3000000)
 
     for (let netIncomeIterated = 8000000; netIncomeIterated < 8000005; netIncomeIterated++) {
-      expect(() => calculator.calculate(netIncomeIterated, fixedExpensesWrapperHigh)).not.toThrow()
+      expect(() => grossCalculator.calculate(netIncomeIterated, fixedExpensesWrapperHigh)).not.toThrow()
     }
 
     // low income
     const fixedExpensesWrapperLow = new FixedExpensesWrapper(100000)
 
     for (let netIncomeIterated = 300000; netIncomeIterated < 300005; netIncomeIterated++) {
-      expect(() => calculator.calculate(netIncomeIterated, fixedExpensesWrapperLow)).not.toThrow()
+      expect(() => grossCalculator.calculate(netIncomeIterated, fixedExpensesWrapperLow)).not.toThrow()
     }
   })
 
@@ -108,7 +108,7 @@ describe('expenses as real amount', () => {
         isRoundingEnabled: false,
       })
 
-      const result = calculator.calculate(netIncome, fixedExpensesWrapper)
+      const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper)
 
       expect(result).toBeCloseTo(grossIncome, 5)
     })
@@ -126,7 +126,7 @@ describe('expenses as real amount', () => {
 
       expect(healthAssessmentBase).toEqual(rates.healthRates.minBase)
 
-      const result = calculator.calculate(netIncome, fixedExpensesWrapper)
+      const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper)
 
       expect(result).toBeCloseTo(grossIncome, 5)
     })
@@ -144,7 +144,7 @@ describe('expenses as real amount', () => {
 
       expect(socialAssessmentBase).toEqual(rates.socialRates.minBase)
 
-      const result = calculator.calculate(netIncome, fixedExpensesWrapper)
+      const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper)
 
       expect(result).toBeCloseTo(grossIncome, 5)
     })
@@ -162,7 +162,7 @@ describe('expenses as real amount', () => {
 
       expect(incomeTax).toBe(0)
 
-      const result = calculator.calculate(netIncome, fixedExpensesWrapper)
+      const result = grossCalculator.calculate(netIncome, fixedExpensesWrapper)
 
       expect(result).toEqual(grossIncome)
     })
@@ -171,18 +171,18 @@ describe('expenses as real amount', () => {
   describe('zero gross income', () => {
     it('returns 0 for a net income equal to minimal deductions', () => {
       const fixedExpensesWrapperZero = new FixedExpensesWrapper(0)
-      expect(calculator.calculate(-minDeductions, fixedExpensesWrapperZero)).toEqual(0)
+      expect(grossCalculator.calculate(-minDeductions, fixedExpensesWrapperZero)).toEqual(0)
 
       const fixedExpensesWrapper = new FixedExpensesWrapper(500000)
-      expect(calculator.calculate(-minDeductions, fixedExpensesWrapper)).toEqual(500000)
+      expect(grossCalculator.calculate(-minDeductions, fixedExpensesWrapper)).toEqual(500000)
     })
 
     it('still returns 0 for a net income below minimal deductions', () => {
       const fixedExpensesWrapperZero = new FixedExpensesWrapper(0)
-      expect(calculator.calculate(-minDeductions - 1, fixedExpensesWrapperZero)).toEqual(0)
+      expect(grossCalculator.calculate(-minDeductions - 1, fixedExpensesWrapperZero)).toEqual(0)
 
       const fixedExpensesWrapper = new FixedExpensesWrapper(500000)
-      expect(calculator.calculate(-minDeductions - 1, fixedExpensesWrapper)).toEqual(500000)
+      expect(grossCalculator.calculate(-minDeductions - 1, fixedExpensesWrapper)).toEqual(500000)
     })
   })
 })
@@ -210,10 +210,10 @@ xdescribe('carpet bombing', () => {
   it('successfully returns a value (no throw)', () => {
     for (let i = 0; i < 20000000; i++) {
       const percentageExpensesWrapper = new PercentageExpensesWrapper(0.6)
-      expect(() => calculator.calculate(i, percentageExpensesWrapper)).not.toThrow()
+      expect(() => grossCalculator.calculate(i, percentageExpensesWrapper)).not.toThrow()
 
       const fixedExpensesWrapper = new FixedExpensesWrapper(500000)
-      expect(() => calculator.calculate(i, fixedExpensesWrapper)).not.toThrow()
+      expect(() => grossCalculator.calculate(i, fixedExpensesWrapper)).not.toThrow()
     }
   })
 })

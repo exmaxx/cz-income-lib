@@ -4,7 +4,7 @@ import { Thresholds } from '../enums'
 
 describe('Employee - Gross Salary', () => {
   const { ZERO_TAX, HIGH_TAX, MAX_BASE_SOCIAL, MIN_HEALTH } = Thresholds
-  const calculator = GrossSalaryCalculatorWithRules.create(rates)
+  const grossCalculator = GrossSalaryCalculatorWithRules.create(rates)
 
   it('calculates gross income out of net salary and rates', () => {
     // Setup
@@ -14,7 +14,7 @@ describe('Employee - Gross Salary', () => {
     const expectedGrossIncome = 1200000 // i.e. 100000 per month
 
     // Execution
-    const grossIncome = calculator.calculate(netSalary)
+    const grossIncome = grossCalculator.calculate(netSalary)
 
     // Assertion
     expect(grossIncome).toEqual(expectedGrossIncome)
@@ -30,7 +30,7 @@ describe('Employee - Gross Salary', () => {
     const expectedGrossIncome = 206400 // 17200 per month
 
     // Execution
-    const grossIncome = calculator.calculate(netSalary, [MIN_HEALTH])
+    const grossIncome = grossCalculator.calculate(netSalary, [MIN_HEALTH])
 
     // Assertion
     expect(grossIncome).toEqual(expectedGrossIncome)
@@ -46,7 +46,7 @@ describe('Employee - Gross Salary', () => {
     const expectedGrossIncome = 120000 // i.e. 10000 per month
 
     // Execution
-    const grossIncome = calculator.calculate(netSalary, [MIN_HEALTH, ZERO_TAX])
+    const grossIncome = grossCalculator.calculate(netSalary, [MIN_HEALTH, ZERO_TAX])
 
     // Assertion
     expect(grossIncome).toBeCloseTo(expectedGrossIncome, 5)
@@ -60,7 +60,7 @@ describe('Employee - Gross Salary', () => {
     const expectedGrossIncome = 2040000 // i.e. 170000 per month
 
     // Execution
-    const grossIncome = calculator.calculate(netSalary, [HIGH_TAX])
+    const grossIncome = grossCalculator.calculate(netSalary, [HIGH_TAX])
 
     // Assertion
     expect(grossIncome).toEqual(expectedGrossIncome)
@@ -74,7 +74,7 @@ describe('Employee - Gross Salary', () => {
     const expectedGrossIncome = 3600000 // 300000 per month
 
     // Execution
-    const grossIncome = calculator.calculate(netSalary, [HIGH_TAX, MAX_BASE_SOCIAL])
+    const grossIncome = grossCalculator.calculate(netSalary, [HIGH_TAX, MAX_BASE_SOCIAL])
 
     // Assertion
     expect(grossIncome).toEqual(expectedGrossIncome)
